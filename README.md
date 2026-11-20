@@ -2,7 +2,7 @@
 
 **EE2 Exporter** is a pared-down StarCraft DAT / Firegraft GUI, derived from [EUD Editor 2](https://github.com/armoha/EUDEditor). It is a **companion GUI** for editing unit stats, graphics, buttons, and related tables, then **exporting a file** you import into a custom **TrigScript**, **epScript**, or (later) classic TrigEdit build chain — not an integrated map compiler.
 
-Full disclosure: this is almost entirely vibe-coded, as I just wanted a tool like this for Linux work with an scmJS/TrigEdit build chain, and no DatEdit style editor is yet available. 
+#### Full disclosure: this is almost entirely vibe-coded, as I just wanted a tool like this for Linux work with an scmJS/TrigEdit build chain, and no DatEdit style editor is yet available.
 
 | Format | File | Use |
 | --- | --- | --- |
