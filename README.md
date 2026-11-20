@@ -38,7 +38,7 @@ The initial goal was something **approximately Linux-native** without reinventin
 
 ## License & attribution
 
-Based on [armoha/EUDEditor](https://github.com/armoha/EUDEditor) (**EUD Editor 2**), originally by **LeeJungHun** (`sksljh2091`), under the same **MIT License** (see [`LICENSE`](LICENSE)). Keep the LeeJungHun copyright notice in copies and substantial portions.
+Based on [armoha/EUDEditor](https://github.com/armoha/EUDEditor) (**EUD Editor 2**), originally by **LeeJungHun** (`sksljh2091`), under the same **MIT License** (see [`LICENSE`](LICENSE)).
 
 EE2 Exporter keeps the DAT / Firegraft foundations and replaces the integrated build/inject path with exporters.
 
