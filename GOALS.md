@@ -6,24 +6,25 @@
 
 This tree started as a fork of [armoha/EUDEditor](https://github.com/armoha/EUDEditor) (**EUD Editor 2** / EE2). It is **not** an EE2 product iteration and **not** a map build system.
 
-It is a **pared-down WinForms GUI** whose job is:
+It is a **companion GUI** for custom TrigScript / epScript (and later classic TrigEdit) build chains:
 
-1. Edit vanilla DAT tables (units, weapons, …) and Firegraft-style buttons/requirements against StarCraft MPQ data.
-2. Export those edits as **importable source** for map scripts — primarily **TrigScript** (`setMemory`), optionally **epScript** (`SetMemory` in `onPluginStart`).
+1. Edit vanilla DAT tables (units, weapons, graphics, …) and Firegraft-style buttons/requirements against StarCraft MPQ data.
+2. Export those edits as **importable source** — primarily **TrigScript** (`setMemory`), optionally **epScript** (`SetMemory` in `onPluginStart`).
 
 **Display name:** EE2 Exporter (full: *EUD Editor 2 Exporter*). **Repo slug:** `ee2-exporter`.
 
-**Primary consumer:** StarCraft: Remastered UMS work (e.g. *Crusader Kings*) that ships **map-local Remastered EUD** inside the `.scx`, not a player-installed mod MPQ, and does **not** use euddraft to apply DAT patches.
+**Linux-first:** The point of the fork was approximate Linux-native usability without rewriting EE2. The WinForms app runs under **Wine** so Linux mapmakers can use it beside scmJS / TrigScript development; the same binary runs on Windows.
 
 ```text
   [DAT / Firegraft GUI]  --export-->  eud-patches.trig  (or .eps)
                                               |
                                               v
-                                    TrigScript / scmJS map build
-                                    (or legacy euddraft + .eps)
+                                    custom TrigScript / scmJS or epScript build
 ```
 
 Pixel-perfect upstream EE2 UI is **not** a goal. Behavioural usefulness for DAT/Firegraft editing + clean export **is**.
+
+**Stripped from EE2:** map Input/Output / inject / euddraft compile, EDD insert, TileSet, and **Plugins** (disabled while TrigScript is primary; may return later for epScript, where plugins fit more naturally).
 
 ### Naming & attribution
 
@@ -60,32 +61,30 @@ Prefer this order in **hand-written or future codegen** map logic (from TrigScri
 
 **“Lift some DatEdit fields to `stats()`”** (optional later, *not* required for Phase 1): for fields TrigScript already exposes under `stats(units.X).hp` (etc.), emit that high-level assignment instead of a raw `setMemory` to the Hit Points dword. Safer for Remastered, clearer in map code. Deep Firegraft/button/require work stays on `setMemory`. Do **not** block shipping on this lift.
 
-**Do not** ship CK unit data as a `scmjs mod` pack.
-
 ---
 
 ## Current status (done)
 
-- Wine prefix + `./setup-wine.sh` / `./build-eud-editor.sh` / `./run-eud-editor.sh`
-- euddraft not required; map Input/Output optional for TrigScript-oriented projects
+- Wine prefix + `./setup-wine.sh` / `./build-eud-editor.sh` / `./run-eud-editor.sh` (Linux companion workflow)
+- Map Input/Output **disabled** (not “optional”); euddraft build path disabled
 - Export: **Tools** format checkables (TrigScript / epScript; Classic TrigEdit stubbed) + **Export** / AutoExport
 - Output: `eud-patches.trig` or `eud-patches.eps` (not JSON)
 - Firegraft require/button dumps only when those tables were actually edited
-- TileSet + Plugin UI disabled; Blog Manual → GitHub repo page
+- TileSet + Plugin UI disabled; Help → https://github.com/michaelcrusso/ee2-exporter
 - Renamed product/repo to **EE2 Exporter** / `ee2-exporter`
 
 ### Export quick use
 
-1. Open/create a project (maps optional).
+1. Open/create a project (no map load/save).
 2. Edit DatEdit / Firegraft as needed.
 3. **Tool → TrigScript Export** or **epScript Export**, then **Export Now…** (or toolbar **Export**).
-4. Drop the generated file into the map’s TrigScript/epScript tree.
+4. Import the generated file into the TrigScript or epScript project.
 
 ---
 
 ## Runtime: Wine *and* Windows
 
-The app is **.NET Framework 4.8 WinForms (x86)**. Wine on Linux is a host convenience, not a different product.
+The app is **.NET Framework 4.8 WinForms (x86)**. Wine is the intentional Linux path, not a second product.
 
 | Host | How |
 | --- | --- |
