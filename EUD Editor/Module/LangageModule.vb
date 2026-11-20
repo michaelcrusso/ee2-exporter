@@ -8,9 +8,16 @@ Namespace Lan
         Dim msgTextCache = New Dictionary(Of String, String)
         Dim arrayCache = New Dictionary(Of String, Dictionary(Of String, String))
 
+        ' Language JSON packs are UTF-8 (English) or UTF-16 (Korean) with BOM.
+        ' Encoding.Default under Wine follows the host ANSI code page and can
+        ' garble those files when BOM detection does not kick in as expected.
+        Private Function OpenLanguageReader(path As String) As StreamReader
+            Return New StreamReader(path, System.Text.Encoding.UTF8, True)
+        End Function
+
 
         Private Function getcontrolname(controls As Control)
-            Dim _str As New Text.StringBuilder
+            Dim _str As New System.Text.StringBuilder
 
             If controls.Text <> "" Then
                 _str.AppendLine("    """ & controls.Name & """: """ & controls.Text & """,")
@@ -24,7 +31,7 @@ Namespace Lan
         End Function
 
         Public Sub GetLanguage(baseform As Form)
-            Dim _str As New Text.StringBuilder
+            Dim _str As New System.Text.StringBuilder
             _str.AppendLine("{")
             For i = 0 To baseform.Controls.Count - 1
                 _str.Append(getcontrolname(baseform.Controls(i)))
@@ -45,7 +52,7 @@ Namespace Lan
 
 
         Private Function getmeunitem(meunitem As ToolStripMenuItem) As String
-            Dim _str As New Text.StringBuilder
+            Dim _str As New System.Text.StringBuilder
 
 
             _str.AppendLine("    """ & meunitem.Name & """: """ & meunitem.Text & """,")
@@ -63,7 +70,7 @@ Namespace Lan
         End Function
 
         Public Sub GetMenu(baseform As Form, meun As Object, Optional name As String = "")
-            Dim _str As New Text.StringBuilder
+            Dim _str As New System.Text.StringBuilder
             _str.AppendLine("{")
             For i = 0 To meun.Items.Count - 1
                 Try
@@ -89,7 +96,7 @@ Namespace Lan
 
 
         Public Sub GetTooltip(baseform As Form, meun As ToolStrip)
-            Dim _str As New Text.StringBuilder
+            Dim _str As New System.Text.StringBuilder
             _str.AppendLine("{")
             For Each i In meun.Items
                 Try
@@ -135,17 +142,12 @@ Namespace Lan
         Public Sub SetLanguage(ByRef forms As Form)
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & forms.Name & ".json"
 
-
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             labels = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
 
             forms.SuspendLayout()
             For i = 0 To forms.Controls.Count - 1
@@ -177,18 +179,12 @@ Namespace Lan
         Public Sub SetMenu(ByRef forms As Form, meun As Object, Optional name As String = "")
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & forms.Name & meun.Name & name & ".json"
 
-
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             labels = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
-
 
             For i = 0 To meun.Items.Count - 1
                 Try
@@ -203,18 +199,12 @@ Namespace Lan
         Public Sub SetTooltip(forms As Form, meun As ToolStrip)
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & forms.Name & meun.Name & ".json"
 
-
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             labels = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
-
 
             For i = 0 To meun.Items.Count - 1
                 Try
@@ -233,16 +223,12 @@ Namespace Lan
 
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\Msgbox.json"
 
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             Dim dic As Dictionary(Of String, String) = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
 
             msgTextCache.Add(key, dic(key))
 
@@ -256,16 +242,12 @@ Namespace Lan
 
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & filename & ".json"
 
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             Dim dic As Dictionary(Of String, String) = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
 
             textCache.Add(filename, dic)
 
@@ -279,16 +261,12 @@ Namespace Lan
 
             Dim Languagepath As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & filename & ".json"
 
-            Dim _filestream As New FileStream(Languagepath, FileMode.Open)
-            Dim _streamreader As New StreamReader(_filestream, System.Text.Encoding.Default)
-
-            Dim jsonString As String = _streamreader.ReadToEnd
-
+            Dim jsonString As String
+            Using _streamreader As StreamReader = OpenLanguageReader(Languagepath)
+                jsonString = _streamreader.ReadToEnd()
+            End Using
 
             Dim dic As Dictionary(Of String, String) = JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(jsonString)
-
-            _streamreader.Close()
-            _filestream.Close()
 
             arrayCache.Add(filename, dic)
 

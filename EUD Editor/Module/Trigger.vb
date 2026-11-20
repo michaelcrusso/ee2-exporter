@@ -38,36 +38,36 @@ End Enum
 Public Class Element
     Private Function ElementNames(Et As ElementType) As String
         Dim temp() As String = {
-               "",'0
-               "If (Conditions) then do (Actions)",'1
-               "If (Conditions) then do (Actions) else do (Actions)",'2
-               "if : ",'3
-               "actions : ",'4
-               "then : ",'5
-               "else : ",'6
-               "Con",'7
-               "Act",'8
-               "While : ",'9
-               "For",'10
-               "Switch",'11
-               "Condition : ",'12
-               "Action : ",'13 
-               "Action : ",'14
-               "CustomFuncitons : ",'15
-               "FuncitonDef : ",'16
-               "Argument : ",'17
-               "Code : ",'18
-               "Fuction : ",'19
-               "Wait : ",'20
-               "Folder : ",'21
-               "actions : ",'22
-               "",'23
-               "ClassciTrigger",'24
-               "Triggers",'25
-               "Condition : ",'26
-               "Action : ",'27
-               "Switch : ",'28
-               "Case : "'29
+               "",
+               "If (Conditions) then do (Actions)",
+               "If (Conditions) then do (Actions) else do (Actions)",
+               "if : ",
+               "actions : ",
+               "then : ",
+               "else : ",
+               "Con",
+               "Act",
+               "While : ",
+               "For",
+               "Switch",
+               "Condition : ",
+               "Action : ",
+               "Action : ",
+               "CustomFuncitons : ",
+               "FuncitonDef : ",
+               "Argument : ",
+               "Code : ",
+               "Fuction : ",
+               "Wait : ",
+               "Folder : ",
+               "actions : ",
+               "",
+               "ClassciTrigger",
+               "Triggers",
+               "Condition : ",
+               "Action : ",
+               "Switch : ",
+               "Case : "
                }
 
         Return temp(Et)

@@ -1,5 +1,5 @@
 ﻿{
-    "Button14": "&Insert",
+    "Button14": "&Export",
     "Button17": "E&DD",
     "Button18": "O&pen",
     "Button4": "View Trigger(&T)",
@@ -18,9 +18,9 @@
     "Button11": "Files",
     "Button12": "Debug",
     "MenuStrip1": "MenuStrip1",
-    "OpenFilter": "EUDEditor SaveFile|*.e2p;*.e2s;*.ees;*.mem|e2p File|*.e2p|e2s File|*.e2s|ess File|*.ees|mem File|*.mem",
-    "SaveFilter": "e2s File|*.e2s|e2p File|*.e2p",
+    "OpenFilter": "EUDEditor SaveFile|*.e2p;*.e2s;*.ees;*.mem|e2p File|*.e2p|e2s File|*.e2s|ess File|*.ees|mem File|*.mem",
+    "SaveFilter": "e2s File|*.e2s|e2p File|*.e2p",
     "MapisNotExit":"The map file does not exist.",
     "CHKMsg": "CHK data read must be enabled.",
-    "CheckBox1": "AutoCompile"
+    "CheckBox1": "AutoExport"
 }

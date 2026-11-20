@@ -18,8 +18,8 @@
     "Button11": "파일 설정",
     "Button12": "디버그",
     "MenuStrip1": "MenuStrip1",
-    "OpenFilter": "EUDEditor 세이브파일|*.e2p;*.e2s;*.ees;*.mem|e2p 파일|*.e2p|e2s 파일|*.e2s|ess 파일|*.ees|mem 파일|*.mem",
-    "SaveFilter": "e2s 파일|*.e2s|e2p 파일|*.e2p",
+    "OpenFilter": "EUDEditor 세이브파일|*.e2p;*.e2s;*.ees;*.mem|e2p 파일|*.e2p|e2s 파일|*.e2s|ess 파일|*.ees|mem 파일|*.mem",
+    "SaveFilter": "e2s 파일|*.e2s|e2p 파일|*.e2p",
     "MapisNotExit": "맵 파일이 존재하지 않습니다.",
     "CHKMsg": "CHK데이터 읽어오기가 활성화 되어야 합니다.",
     "CheckBox1": "자동컴파일"

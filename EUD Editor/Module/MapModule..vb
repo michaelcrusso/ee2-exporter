@@ -36,13 +36,13 @@ Module MapModule
 
 
 
-    Private MOVINGDATA(,) As UInt16 = {{192, 288, 288, 32, 64, 64, 96, 864, 864},'badlands
-                                        {288, 192, 3731, 224, 64, 128, 32, 4992, 3424},'platform
-                                        {32, 96, 128, 256, 256, 256, 192, 928, 2080},'install
-                                        {64, 128, 128, 32, 96, 96, 224, 2080, 2080},'ashworld
-                                        {224, 320, 384, 32, 64, 64, 96, 576, 7968},'jungle
-                                        {160, 256, 384, 32, 64, 64, 96, 576, 7856},'desert
-                                        {96, 256, 384, 32, 288, 288, 192, 352, 7968},'ice
+    Private MOVINGDATA(,) As UInt16 = {{192, 288, 288, 32, 64, 64, 96, 864, 864},
+                                        {288, 192, 3731, 224, 64, 128, 32, 4992, 3424},
+                                        {32, 96, 128, 256, 256, 256, 192, 928, 2080},
+                                        {64, 128, 128, 32, 96, 96, 224, 2080, 2080},
+                                        {224, 320, 384, 32, 64, 64, 96, 576, 7968},
+                                        {160, 256, 384, 32, 64, 64, 96, 576, 7856},
+                                        {96, 256, 384, 32, 288, 288, 192, 352, 7968},
                                         {160, 256, 384, 32, 288, 288, 96, 2818, 7856}} 'twilight
     Public Magaindex() As UInt16
 
@@ -377,6 +377,12 @@ Module MapModule
 
 
     Public Sub LoadTILEDATA(Optional isgraphic As Boolean = False, Optional OnlyMTXM As Boolean = False)
+        If ProjectSet.InputMap = "" OrElse CheckFileExist(ProjectSet.InputMap) Then
+            ProjectTileSetData.Clear()
+            ProjectTIleMSet = New Byte() {}
+            ProjectMTXMDATA = New Byte() {}
+            Exit Sub
+        End If
 
         Dim hmpq As UInteger
         Dim hfile As UInteger

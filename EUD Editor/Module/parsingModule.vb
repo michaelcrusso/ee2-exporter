@@ -170,7 +170,8 @@ Module parsingModule
 
     Public Sub CheckMapFile()
         If ProjectSet.isload = True Then
-            If CheckFileExist(ProjectSet.InputMap) Then
+            ' Empty paths mean a map-less (TrigScript export) project — do not force pickers.
+            If ProjectSet.InputMap <> "" AndAlso CheckFileExist(ProjectSet.InputMap) Then
                 MsgBox("다음 맵은 존재하지 않습니다! 다시 설정해 주세요." & vbCrLf & ProjectSet.InputMap, MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
                 While True
                     If SettingForm.SetInputMap() Then
@@ -179,19 +180,21 @@ Module parsingModule
                 End While
             End If
 
-            Dim len As UInteger = ProjectSet.OutputMap.Split("\").Count
-            Dim filename As String = ProjectSet.OutputMap.Split("\")(len - 1)
-            filename = Replace(ProjectSet.OutputMap, filename, "")
-            filename = Mid(filename, 1, filename.Length - 1)
+            If ProjectSet.OutputMap <> "" Then
+                Dim len As UInteger = ProjectSet.OutputMap.Split("\").Count
+                Dim filename As String = ProjectSet.OutputMap.Split("\")(len - 1)
+                filename = Replace(ProjectSet.OutputMap, filename, "")
+                filename = Mid(filename, 1, filename.Length - 1)
 
 
-            If System.IO.Directory.Exists(filename) = False Then
-                MsgBox("다음 맵은 존재하지 않습니다! 다시 설정해 주세요." & vbCrLf & ProjectSet.OutputMap, MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
-                While True
-                    If SettingForm.SetOutputMap() Then
-                        Exit While
-                    End If
-                End While
+                If System.IO.Directory.Exists(filename) = False Then
+                    MsgBox("다음 맵은 존재하지 않습니다! 다시 설정해 주세요." & vbCrLf & ProjectSet.OutputMap, MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
+                    While True
+                        If SettingForm.SetOutputMap() Then
+                            Exit While
+                        End If
+                    End While
+                End If
             End If
 
 
@@ -338,6 +341,19 @@ Module parsingModule
 
     End Function
 
+    ''' <summary>
+    ''' Split text into lines for both CRLF (Windows) and LF (git/Linux) checkouts.
+    ''' VB's Split(vbCrLf) treats the two-char delimiter as a unit, so LF-only files
+    ''' stay as one blob and tab-fields bleed across rows.
+    ''' </summary>
+    Public Function SplitLines(text As String) As String()
+        If text Is Nothing Then
+            Return New String() {}
+        End If
+        Dim normalized As String = text.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf)
+        Return normalized.Split({CChar(vbLf)}, StringSplitOptions.None)
+    End Function
+
     Public Function FindSection(base As String, key As String) As String
         Try
             Dim length = InStr(base, "E_" & key) - InStr(base, "S_" & key) - key.Count - 2
@@ -393,8 +409,8 @@ Module parsingModule
         OffsetKey = "[" & OffsetKey & "="
         Dim filename As String = My.Application.Info.DirectoryPath & "\Data\" & "ValueDef.txt"
         Dim filestr As FileStream = New FileStream(filename, FileMode.Open)
-        Dim strstream As StreamReader = New StreamReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
-        Dim strbinary As BinaryReader = New BinaryReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strstream As StreamReader = New StreamReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strbinary As BinaryReader = New BinaryReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
         Dim offsettext As String = strstream.ReadToEnd
         strbinary.Close()
         strstream.Close()
@@ -411,8 +427,8 @@ Module parsingModule
         OffsetKey = "[" & OffsetKey & "="
         Dim filename As String = My.Application.Info.DirectoryPath & "\Data\" & "Offset" & StarVersion & ".txt"
         Dim filestr As FileStream = New FileStream(filename, FileMode.Open)
-        Dim strstream As StreamReader = New StreamReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
-        Dim strbinary As BinaryReader = New BinaryReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strstream As StreamReader = New StreamReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strbinary As BinaryReader = New BinaryReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
         Dim offsettext As String = strstream.ReadToEnd
         strbinary.Close()
         strstream.Close()
@@ -426,8 +442,8 @@ Module parsingModule
         Offset = "=" & Offset
         Dim filename As String = My.Application.Info.DirectoryPath & "\Data\" & "Offset" & StarVersion & ".txt"
         Dim filestr As FileStream = New FileStream(filename, FileMode.Open)
-        Dim strstream As StreamReader = New StreamReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
-        Dim strbinary As BinaryReader = New BinaryReader(filestr, Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strstream As StreamReader = New StreamReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
+        Dim strbinary As BinaryReader = New BinaryReader(filestr, System.Text.Encoding.GetEncoding("ks_c_5601-1987"))
         Dim offsettext As String = strstream.ReadToEnd
         strbinary.Close()
         strstream.Close()
@@ -474,8 +490,8 @@ Module parsingModule
 
         End Try
         Dim filestr As FileStream = New FileStream(filename, FileMode.CreateNew)
-        Dim strstream As StreamWriter = New StreamWriter(filestr, Text.Encoding.GetEncoding(encoding))
-        Dim strbinary As BinaryWriter = New BinaryWriter(filestr, Text.Encoding.GetEncoding(encoding)) 'Ge
+        Dim strstream As StreamWriter = New StreamWriter(filestr, System.Text.Encoding.GetEncoding(encoding))
+        Dim strbinary As BinaryWriter = New BinaryWriter(filestr, System.Text.Encoding.GetEncoding(encoding)) 'Ge
 
         Dim strpoint As UInteger = stat_txt.Count * 2 + 2
 
@@ -508,7 +524,7 @@ Module parsingModule
             strstream.Write(replacetext(stat_txt(i)))
 
             Dim memstram As MemoryStream = New MemoryStream()
-            Dim strw As StreamWriter = New StreamWriter(memstram, Text.Encoding.GetEncoding(encoding))
+            Dim strw As StreamWriter = New StreamWriter(memstram, System.Text.Encoding.GetEncoding(encoding))
             'MsgBox(memstram.Length)
             strw.Write(replacetext(stat_txt(i)))
             strw.AutoFlush = True
@@ -550,8 +566,8 @@ Module parsingModule
         'Dim filestr As FileStream = New FileStream(dataDumper_stat_txt, FileMode.Open)
 
         ''Dim strmem As MemoryStream = New MemoryStream(mpq.ReaddatFile(filename))
-        'Dim strstream As StreamReader = New StreamReader(filestr, Text.Encoding.GetEncoding(encoding)) 'Text.Encoding.GetEncoding("ks_c_5601-1987")
-        'Dim strbinary As BinaryReader = New BinaryReader(filestr, Text.Encoding.GetEncoding(encoding)) 'GetEncoding("ks_c_5601-1987")
+        'Dim strstream As StreamReader = New StreamReader(filestr, System.Text.Encoding.GetEncoding(encoding)) 'System.Text.Encoding.GetEncoding("ks_c_5601-1987")
+        'Dim strbinary As BinaryReader = New BinaryReader(filestr, System.Text.Encoding.GetEncoding(encoding)) 'GetEncoding("ks_c_5601-1987")
 
         'Dim tempindex As Integer
         'Dim nextpos As Long
@@ -651,8 +667,8 @@ Module parsingModule
 
         'Dim filestr As MemoryStream = LoadMemory(DataName.stat_txt)
         'Dim strmem As MemoryStream = New MemoryStream(mpq.ReaddatFile(filename))
-        Dim strstream As StreamReader = New StreamReader(filestr, Text.Encoding.GetEncoding(encoding)) 'Text.Encoding.GetEncoding("ks_c_5601-1987")
-        Dim strbinary As BinaryReader = New BinaryReader(filestr, Text.Encoding.GetEncoding(encoding)) 'GetEncoding("ks_c_5601-1987")
+        Dim strstream As StreamReader = New StreamReader(filestr, System.Text.Encoding.GetEncoding(encoding)) 'System.Text.Encoding.GetEncoding("ks_c_5601-1987")
+        Dim strbinary As BinaryReader = New BinaryReader(filestr, System.Text.Encoding.GetEncoding(encoding)) 'GetEncoding("ks_c_5601-1987")
 
         Dim tempindex As Integer
         Dim nextpos As Long
@@ -742,7 +758,7 @@ Module parsingModule
         Dim _filename = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & filename & ".txt"
         Dim _values As New List(Of String)
         Dim filestream As New FileStream(_filename, FileMode.Open)
-        Dim strreader As New StreamReader(filestream, Text.Encoding.Default)
+        Dim strreader As New StreamReader(filestream, System.Text.Encoding.Default)
 
         While (strreader.EndOfStream = False)
             _values.Add(strreader.ReadLine.Trim)

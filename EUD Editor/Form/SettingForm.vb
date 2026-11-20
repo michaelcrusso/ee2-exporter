@@ -32,20 +32,17 @@ Public Class SettingForm
     End Sub
 
     Private Function CheckMakeButton() As Boolean
-        If ProjectSet.InputMap <> "" And ProjectSet.OutputMap <> "" Then
-            Button6.Visible = False
-            Button5.Size = New Size(310, 30)
-            Return True
-        Else
-            Button6.Visible = True
-            Button5.Size = New Size(154, 30)
-            'Button6.Location = New Point(162, 213)
-            Return False
-        End If
+        ' TrigScript export projects do not need Load/Save maps. Maps stay optional
+        ' for CHK-backed features; OK is always available on New Project.
+        Button6.Visible = False
+        Button5.Size = New Size(310, 30)
+        Button5.Enabled = True
+        Return True
     End Function
 
     Private Sub CheckButton5()
-        If ProgramSet.StarDirec = "" Or ProgramSet.euddraftDirec = "" Then
+        ' Only StarCraft.exe is required to continue; euddraft.exe is optional.
+        If ProgramSet.StarDirec = "" Then
             Button5.Enabled = False
             Button5.Size = New Size(154, 30)
 
@@ -121,6 +118,11 @@ Public Class SettingForm
         For i = 0 To 4
             CheckedListBox2.SetItemChecked(i, ProjectSet.UsedSetting(i))
         Next
+        ' TileSet / Plugin unsupported in this fork — force off.
+        ProjectSet.UsedSetting(ProjectSet.Settingtype.TileSet) = False
+        CheckedListBox2.SetItemChecked(ProjectSet.Settingtype.TileSet, False)
+        ProjectSet.UsedSetting(ProjectSet.Settingtype.Plugin) = False
+        CheckedListBox1.SetItemChecked(2, False) ' Plugin item in CheckedListBox1
         '0 DatEdit
         '1 FireGraft
         '2 BinEditor
@@ -204,8 +206,6 @@ Public Class SettingForm
 
             'Me.ControlBox = False
             'Button5.Location = New Point(3, 213)
-            Button5.Enabled = False 'CheckMakeButton()
-
             Button5.Visible = True
 
             GroupBox2.Visible = False
@@ -220,6 +220,7 @@ Public Class SettingForm
 
 
     Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        PersistProgramSettings()
         Me.Close()
     End Sub
 
@@ -237,11 +238,23 @@ Public Class SettingForm
     End Sub
 
     Private Sub CheckedListBox1_SelectedIndexChanged(sender As Object, e As ItemCheckEventArgs) Handles CheckedListBox1.ItemCheck
+        ' Index 2 = Plugin — keep disabled.
+        If e.Index = 2 Then
+            e.NewValue = CheckState.Unchecked
+            ProjectSet.UsedSetting(ProjectSet.Settingtype.Plugin) = False
+            Return
+        End If
         ProjectSet.UsedSetting(e.Index + 5) = e.NewValue
         ProjectSet.saveStatus = False
     End Sub
 
     Private Sub CheckedListBox2_SelectedIndexChanged(sender As Object, e As ItemCheckEventArgs) Handles CheckedListBox2.ItemCheck
+        ' TileSet editor is incompatible — block re-enabling from the project settings list.
+        If e.Index = ProjectSet.Settingtype.TileSet Then
+            e.NewValue = CheckState.Unchecked
+            ProjectSet.UsedSetting(ProjectSet.Settingtype.TileSet) = False
+            Return
+        End If
         ProjectSet.UsedSetting(e.Index) = e.NewValue
 
         ProjectSet.saveStatus = False
@@ -249,6 +262,7 @@ Public Class SettingForm
 
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ComboBox1.SelectedIndexChanged
         ProgramSet.StarVersion = ComboBox1.SelectedItem
+        PersistProgramSettings()
         ProjectSet.saveStatus = False
 
         If ComboBox1.SelectedItem = "1.16.1" Then
@@ -275,6 +289,7 @@ Public Class SettingForm
         If dialog = DialogResult.OK Then
             ProgramSet.StarDirec = StarCraftOFD.FileName
             TextBox1.Text = ProgramSet.StarDirec.Split("\").Last
+            PersistProgramSettings()
         End If
         CheckButton5()
     End Sub
@@ -288,6 +303,7 @@ Public Class SettingForm
         If dialog = DialogResult.OK Then
             ProgramSet.euddraftDirec = euddraftOFD.FileName
             TextBox2.Text = ProgramSet.euddraftDirec.Split("\").Last
+            PersistProgramSettings()
         End If
         CheckButton5()
     End Sub

@@ -9,11 +9,11 @@ Imports System.Runtime.InteropServices
 
 ' 어셈블리 특성 값을 검토합니다.
 
-<Assembly: AssemblyTitle("EUD Editor SE")>
-<Assembly: AssemblyDescription("EUD를 간단하게 만들 수 있는 에디터.")>
+<Assembly: AssemblyTitle("EE2 Exporter")>
+<Assembly: AssemblyDescription("EUD Editor 2–based DAT/Firegraft GUI that exports TrigScript/epScript memory patches.")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("EUD Editor SE")>
-<Assembly: AssemblyCopyright("Copyright © 2016  All rights reserved by sksljh2091.")>
+<Assembly: AssemblyProduct("EE2 Exporter")>
+<Assembly: AssemblyCopyright("Copyright © 2018 LeeJungHun; modifications © 2026 Michael Russo and contributors. MIT License.")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
@@ -34,4 +34,4 @@ Imports System.Runtime.InteropServices
 
 <Assembly: AssemblyVersion("0.0.0.0")>
 <Assembly: AssemblyFileVersion("0.0.0.0")>
-<Assembly: NeutralResourcesLanguage("ko-KR")>
+<Assembly: NeutralResourcesLanguage("en")>

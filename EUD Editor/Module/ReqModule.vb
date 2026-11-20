@@ -68,6 +68,19 @@ Module ReqModule
         fileCreator.Close()
     End Sub
 
+    ''' <summary>
+    ''' Build RequireData via the same path as euddraft dataDumper, then return the bytes.
+    ''' Updates .pos fields as a side effect (same as RepDataToFile).
+    ''' </summary>
+    Public Function BuildRequireDataBytes() As Byte()
+        Dim tempDir As String = My.Application.Info.DirectoryPath & "\Data\temp\"
+        If Directory.Exists(tempDir) = False Then
+            Directory.CreateDirectory(tempDir)
+        End If
+        RepDataToFile()
+        Return File.ReadAllBytes(tempDir & "RequireData")
+    End Function
+
     Public Function RepDataToTrigger() As String
         Dim pointers() As String = {"FG_PReqUnit", "FG_PReqUpg", "FG_PReqTechUpg", "FG_PReqTechUse", "FG_PReqOrder"}
 

@@ -4,6 +4,11 @@
         ThemeSetForm.SetControlColor(Me)
     End Sub
 
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click
+        ' Persist immediately so a later crash / unclean exit does not lose MPQ paths.
+        PersistMpqSettings()
+    End Sub
+
     Private Sub refreshform()
 
         TextBox1.Text = ProgramSet.DatMPQDirec(0)

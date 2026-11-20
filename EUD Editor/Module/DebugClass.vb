@@ -421,7 +421,7 @@ Public Class CGameData
 
     '        Dim mem As MemoryStream = New MemoryStream(Buffer)
     '        Dim binary As BinaryReader = New BinaryReader(mem)
-    '        Dim stream As StreamReader = New StreamReader(mem, Text.Encoding.ASCII)
+    '        Dim stream As StreamReader = New StreamReader(mem, System.Text.Encoding.ASCII)
     '        temptext = stream.ReadToEnd
 
 

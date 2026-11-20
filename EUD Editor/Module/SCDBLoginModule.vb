@@ -87,7 +87,7 @@
 
             data = .ResponseText
 
-            Dim reges As New Text.RegularExpressions.Regex("(DATA{)(.*)(})")
+            Dim reges As New System.Text.RegularExpressions.Regex("(DATA{)(.*)(})")
 
             Dim text As String
             Try

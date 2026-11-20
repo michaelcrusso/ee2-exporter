@@ -151,7 +151,7 @@ Module ValueDefsModule
                     Dim filename As String = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\" & Name(k) & ".txt"
                     If CheckFileExist(filename) = False Then
                         Dim filestream As New FileStream(filename, FileMode.Open)
-                        Dim strreader As New StreamReader(filestream, Text.Encoding.Default)
+                        Dim strreader As New StreamReader(filestream, System.Text.Encoding.Default)
 
                         While (strreader.EndOfStream = False)
                             _values.Add(strreader.ReadLine)
@@ -185,7 +185,7 @@ Module ValueDefsModule
     Public Sub LoadCUnitData()
         Dim filename As String = My.Application.Info.DirectoryPath & "\Data\CUnitToTriggerEditor.txt"
         Dim filestream As New FileStream(filename, FileMode.Open)
-        Dim strreader As New StreamReader(filestream, Text.Encoding.Default)
+        Dim strreader As New StreamReader(filestream, System.Text.Encoding.Default)
 
         While (strreader.EndOfStream = False)
             CUnitData.Add(strreader.ReadLine.Split(","))

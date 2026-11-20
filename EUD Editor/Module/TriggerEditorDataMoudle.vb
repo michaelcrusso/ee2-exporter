@@ -644,7 +644,7 @@ Module TriggerEditorDataMoudle
 
 
     Public Function SaveTrigger() As String
-        Dim str As New Text.StringBuilder
+        Dim str As New System.Text.StringBuilder
 
 
         str.AppendLine("&AddText&")

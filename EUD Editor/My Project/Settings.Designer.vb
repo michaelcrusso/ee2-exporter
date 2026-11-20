@@ -273,6 +273,30 @@ Namespace My
                 Me("DatEditColor8") = value
             End Set
         End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+        Public Property LastProjectDirectory() As String
+            Get
+                Return CType(Me("LastProjectDirectory"), String)
+            End Get
+            Set
+                Me("LastProjectDirectory") = value
+            End Set
+        End Property
+
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("")>  _
+        Public Property LastExportDirectory() As String
+            Get
+                Return CType(Me("LastExportDirectory"), String)
+            End Get
+            Set
+                Me("LastExportDirectory") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

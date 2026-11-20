@@ -1003,6 +1003,12 @@ Namespace eudplib
 
 
         Public Sub Toflie(Optional isedd As Boolean = False, Optional isotherWindows As Boolean = False)
+            ' Phase 1: DatEdit/Firegraft for CK uses TrigScript export, not euddraft.
+            If ProjectSet.euddraftuse = False Then
+                MsgBox("euddraft is disabled for this project. Use Tools → Export for TrigScript… to write patch files.", MsgBoxStyle.Exclamation, ProgramSet.ErrorFormMessage)
+                Exit Sub
+            End If
+
             Dim basefolder As String = My.Application.Info.DirectoryPath & "\Data"
             If ProjectSet.filename.EndsWith(".e2p") Then
                 '집 파일이면 

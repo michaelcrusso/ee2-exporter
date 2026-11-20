@@ -288,3 +288,15 @@ Updater/build
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Repo-local Wine prefix (created by ./setup-wine.sh — do not commit)
+wine/
+wine-setup.log
+wine-build.log
+
+# Local StarCraft MPQ copies (large; place Patch_rt / BrooDat / BroodWar / StarDat here)
+mpqs/
+
+# NuGet packages restored by ./build-eud-editor.sh
+packages/
+

@@ -15,6 +15,10 @@ Public Class Main
     Public Sub refreshSet()
         ThemeSetForm.SetControlColor(Me)
 
+        ' TileSet / Plugin remain unsupported regardless of saved project flags.
+        ProjectSet.UsedSetting(ProjectSet.Settingtype.TileSet) = False
+        ProjectSet.UsedSetting(ProjectSet.Settingtype.Plugin) = False
+
         If ProjectSet.isload = True Then
             If ProgramSet.StarVersion = "Remastered" Then
                 CheckCompatiblity()
@@ -36,165 +40,58 @@ Public Class Main
             Me.Size = New Size(423 + 66 + 65 + 66, 159)
         End If
 
+        FlowLayoutPanel2.Visible = False
+        Button6.Enabled = False
+        Button6.Visible = False
+        ' Plugin panel is euddraft-era; hide for this TrigScript-oriented fork.
+        ProjectSet.UsedSetting(ProjectSet.Settingtype.Plugin) = False
+        Button10.Enabled = False
+        Button10.Visible = False
 
-        If ProjectSet.isload = True Then '로드 되어 있을 경우
-            FlowLayoutPanel2.Enabled = True
-            Button2.Enabled = ProjectSet.UsedSetting(0)
-            Button3.Enabled = ProjectSet.UsedSetting(1)
-            CheckBox1.Enabled = True
-            CheckBox1.Checked = ProgramSet.isAutoCompile
+        Dim loaded As Boolean = ProjectSet.isload
+        Button2.Enabled = loaded AndAlso ProjectSet.UsedSetting(0)
+        Button3.Enabled = loaded AndAlso ProjectSet.UsedSetting(1)
+        CheckBox1.Enabled = loaded
+        CheckBox1.Checked = ProgramSet.isAutoCompile
+        CheckBox1.Text = "AutoExport"
+        Button14.Enabled = loaded
+        Button14.Text = "&Export"
+        ExportTrigScriptToolStripMenuItem.Enabled = loaded
+        SyncExportFormatMenu()
 
-
-            If ProgramSet.StarVersion = "1.16.1" Then
-                FlowLayoutPanel4.AutoSize = True
-
-                FlowLayoutPanel2.Enabled = False
-
-                MpainjectWToolStripMenuItem.Enabled = True
-                EDDOpenDToolStripMenuItem.Enabled = True
-                Button14.Enabled = True
-                Button17.Enabled = True
-                Button18.Enabled = True
-                ToolStripMenuItem1.Enabled = True
-
-
-                Button5.Enabled = ProjectSet.UsedSetting(2) 'binEdit
-                Button6.Enabled = ProjectSet.UsedSetting(3) 'tileSet
-                Button7.Enabled = ProjectSet.UsedSetting(4)
-                Button8.Enabled = ProjectSet.UsedSetting(5) 'GRP
-                Button9.Enabled = ProjectSet.UsedSetting(6)
-                Button10.Enabled = ProjectSet.UsedSetting(7) 'Plugin
-                Button15.Enabled = ProjectSet.UsedSetting(8) 'FileManger
-                Button12.Enabled = True
-                Button13.Enabled = True
-                Button13.Visible = True
-
-                Button11.Visible = True
-                Button11.Enabled = True
-                'Button11.Enabled = True
-                Button12.Visible = True
-
-                Button5.Visible = True
-                ' Button6.Visible = True
-                Button8.Visible = True
-                'Button7.Enabled = ProjectSet.UsedSetting(4)
-
-                Button13.Enabled = True
-            Else
-                FlowLayoutPanel4.AutoSize = True
-
-                FlowLayoutPanel2.Enabled = False
-
-                MpainjectWToolStripMenuItem.Enabled = True
-                EDDOpenDToolStripMenuItem.Enabled = True
-                Button14.Enabled = True
-                Button17.Enabled = True
-                Button18.Enabled = True
-                ToolStripMenuItem1.Enabled = True
-
-                Button5.Enabled = False 'binEdit
-                Button5.Visible = False
-
-                Button6.Enabled = ProjectSet.UsedSetting(3) 'tileSet
-                'Button6.Visible = False
-
-                Button7.Enabled = ProjectSet.UsedSetting(4)
-                Button8.Enabled = False 'GRP
-                Button8.Visible = False
-
-                Button9.Enabled = ProjectSet.UsedSetting(6)
-                Button10.Enabled = ProjectSet.UsedSetting(7) 'Plugin
-                Button15.Enabled = ProjectSet.UsedSetting(8) 'FileManger
-                Button12.Enabled = False
-                Button13.Enabled = False
-                Button13.Visible = False
-
-                Button11.Visible = True
-                Button11.Enabled = True
-                'Button11.Enabled = True
-                Button12.Visible = False
-
-                'Button7.Enabled = ProjectSet.UsedSetting(4)
-
-                Button13.Enabled = True
-            End If
-
-        Else '로드 안되어 있을 경우
-            Button2.Enabled = False
-            Button3.Enabled = False
-            CheckBox1.Enabled = False
-
-
-            If ProgramSet.StarVersion = "1.16.1" Then
-                FlowLayoutPanel4.AutoSize = True
-
-                FlowLayoutPanel2.Enabled = False
-
-                MpainjectWToolStripMenuItem.Enabled = False
-                EDDOpenDToolStripMenuItem.Enabled = False
-                Button14.Enabled = False
-                Button17.Enabled = False
-                Button18.Enabled = False
-                ToolStripMenuItem1.Enabled = False
-
-
-                Button5.Enabled = False
-                Button6.Enabled = False
-                Button7.Enabled = False
-                Button8.Enabled = False
-                Button9.Enabled = False
-                Button10.Enabled = False
-                Button15.Enabled = False
-                Button12.Enabled = False
-                Button13.Enabled = False
-                Button13.Visible = True
-
-                Button11.Visible = True
-                Button11.Enabled = False
-                Button12.Visible = True
-
-                Button5.Visible = True
-                'Button6.Visible = True
-                Button8.Visible = True
-                'Button7.Enabled = ProjectSet.UsedSetting(4)
-
-                Button13.Enabled = False
-            Else
-                FlowLayoutPanel4.AutoSize = True
-
-                FlowLayoutPanel2.Enabled = False
-
-                MpainjectWToolStripMenuItem.Enabled = False
-                EDDOpenDToolStripMenuItem.Enabled = False
-                Button14.Enabled = False
-                Button17.Enabled = False
-                Button18.Enabled = False
-                ToolStripMenuItem1.Enabled = False
-
-                Button5.Enabled = False 'binEdit
-                Button5.Visible = False
-
-                Button6.Enabled = False 'tileSet
-                Button6.Visible = False
-
-                Button7.Enabled = False
-                Button8.Enabled = False 'GRP
-                Button8.Visible = False
-
-                Button9.Enabled = False
-                Button10.Enabled = False
-                Button15.Enabled = False
-                Button12.Enabled = False
-                Button13.Visible = False
-
-                Button11.Visible = True
-                Button11.Enabled = False
-                Button12.Visible = False
-
-                'Button7.Enabled = ProjectSet.UsedSetting(4)
-
-                Button13.Enabled = False
-            End If
+        FlowLayoutPanel4.AutoSize = True
+        If ProgramSet.StarVersion = "1.16.1" Then
+            Button5.Enabled = loaded AndAlso ProjectSet.UsedSetting(2)
+            Button5.Visible = True
+            Button7.Enabled = loaded AndAlso ProjectSet.UsedSetting(4)
+            Button8.Enabled = loaded AndAlso ProjectSet.UsedSetting(5)
+            Button8.Visible = True
+            Button9.Enabled = loaded AndAlso ProjectSet.UsedSetting(6)
+            Button10.Enabled = False
+            Button10.Visible = False
+            Button15.Enabled = loaded AndAlso ProjectSet.UsedSetting(8)
+            Button11.Visible = True
+            Button11.Enabled = loaded
+            Button12.Visible = True
+            Button12.Enabled = loaded
+            Button13.Visible = True
+            Button13.Enabled = loaded
+        Else
+            Button5.Enabled = False
+            Button5.Visible = False
+            Button7.Enabled = loaded AndAlso ProjectSet.UsedSetting(4)
+            Button8.Enabled = False
+            Button8.Visible = False
+            Button9.Enabled = loaded AndAlso ProjectSet.UsedSetting(6)
+            Button10.Enabled = False
+            Button10.Visible = False
+            Button15.Enabled = loaded AndAlso ProjectSet.UsedSetting(8)
+            Button11.Visible = True
+            Button11.Enabled = loaded
+            Button12.Visible = False
+            Button12.Enabled = False
+            Button13.Visible = False
+            Button13.Enabled = False
         End If
     End Sub
 
@@ -202,13 +99,37 @@ Public Class Main
         SaveToolStripMenuItem.Enabled = ProjectSet.isload
         SaveasToolStripMenuItem.Enabled = ProjectSet.isload
         ProCloseToolStripMenuItem.Enabled = ProjectSet.isload
-
-        PyViewVToolStripMenuItem.Enabled = ProjectSet.isload
-        EdsViewEToolStripMenuItem.Enabled = ProjectSet.isload
-
-
+        ExportTrigScriptToolStripMenuItem.Enabled = ProjectSet.isload
         btn_Save.Enabled = ProjectSet.isload
         btn_close.Enabled = ProjectSet.isload
+        SyncExportFormatMenu()
+    End Sub
+
+    Private Sub SyncExportFormatMenu()
+        ExportFormatTrigScriptMenuItem.Checked = (ProjectSet.ExportFormat = ProjectSet.PatchExportFormat.TrigScript)
+        ExportFormatEpScriptMenuItem.Checked = (ProjectSet.ExportFormat = ProjectSet.PatchExportFormat.EpScript)
+        ExportFormatClassicMenuItem.Checked = (ProjectSet.ExportFormat = ProjectSet.PatchExportFormat.ClassicTrigger)
+        ExportFormatTrigScriptMenuItem.Enabled = True
+        ExportFormatEpScriptMenuItem.Enabled = True
+        ' Classic TrigEdit needs EPD/player-unit encoding — leave stubbed for now.
+        ExportFormatClassicMenuItem.Enabled = False
+    End Sub
+
+    Private Sub ExportFormatTrigScriptMenuItem_Click(sender As Object, e As EventArgs) Handles ExportFormatTrigScriptMenuItem.Click
+        ProjectSet.ExportFormat = ProjectSet.PatchExportFormat.TrigScript
+        ProjectSet.saveStatus = False
+        SyncExportFormatMenu()
+    End Sub
+
+    Private Sub ExportFormatEpScriptMenuItem_Click(sender As Object, e As EventArgs) Handles ExportFormatEpScriptMenuItem.Click
+        ProjectSet.ExportFormat = ProjectSet.PatchExportFormat.EpScript
+        ProjectSet.saveStatus = False
+        SyncExportFormatMenu()
+    End Sub
+
+    Private Sub ExportFormatClassicMenuItem_Click(sender As Object, e As EventArgs) Handles ExportFormatClassicMenuItem.Click
+        ' Stub until classic TrigEdit EPD encoding is implemented.
+        SyncExportFormatMenu()
     End Sub
 
 
@@ -225,7 +146,7 @@ Public Class Main
 
         If ProjectSet.isload = True Then
             If ProjectSet.filename = "" Then
-                Me.Text = Lan.GetMsgText("Defacultname") & " " & issaved & " -  EUD Editor SE " & ProgramSet.Version & "." & ProgramSet.StarVersion
+                Me.Text = Lan.GetMsgText("Defacultname") & " " & issaved & " -  EE2 Exporter " & ProgramSet.Version & "." & ProgramSet.StarVersion
 
                 If DatEditForm IsNot Nothing Then DatEditForm.Text = ProgramSet.DatEditName & issaved & " " & ProgramSet.Version
 
@@ -233,13 +154,13 @@ Public Class Main
             Else
                 Dim name As String = ProjectSet.filename.Split("\").Last
 
-                Me.Text = name & issaved & " -  EUD Editor SE " & ProgramSet.Version & "." & ProgramSet.StarVersion
+                Me.Text = name & issaved & " -  EE2 Exporter " & ProgramSet.Version & "." & ProgramSet.StarVersion
                 If DatEditForm IsNot Nothing Then DatEditForm.Text = name & issaved & " - " & ProgramSet.DatEditName & " " & ProgramSet.Version
 
                 If FireGraftForm IsNot Nothing Then FireGraftForm.Text = name & issaved & " - " & ProgramSet.FireGraftName & " " & ProgramSet.Version
             End If
         Else
-            Me.Text = "EUD Editor SE " & ProgramSet.Version & "." & ProgramSet.StarVersion
+            Me.Text = "EE2 Exporter " & ProgramSet.Version & "." & ProgramSet.StarVersion
         End If
 
     End Sub
@@ -393,7 +314,10 @@ Public Class Main
             Dim name As String = ProjectSet.filename.Split("\").Last
 
             SaveFileDialog1.FileName = Mid(name, 1, name.Length - 4)
-            SaveFileDialog1.InitialDirectory = ProjectSet.filename.Replace(ProjectSet.filename.Split("\").Last, "")
+        End If
+        Dim projectDir As String = ResolveProjectDialogDirectory()
+        If projectDir <> "" Then
+            SaveFileDialog1.InitialDirectory = projectDir
         End If
 
 
@@ -402,6 +326,7 @@ Public Class Main
         If Dialog = DialogResult.Cancel Then
         Else
             ProjectSet.Save(SaveFileDialog1.FileName)
+            RememberProjectDirectory(SaveFileDialog1.FileName)
         End If
 
         refreshSet()
@@ -413,16 +338,26 @@ Public Class Main
     Private Sub 열기()
         Dim Dialog As DialogResult
 
-
+        Dim projectDir As String = ResolveProjectDialogDirectory()
+        If projectDir <> "" Then
+            OpenFileDialog1.InitialDirectory = projectDir
+        End If
 
         Dialog = OpenFileDialog1.ShowDialog()
         If Dialog = DialogResult.Cancel Then
         Else
             If ProjectSet.Close() = True Then
                 ProjectSet.Load(OpenFileDialog1.FileName)
+                RememberProjectDirectory(OpenFileDialog1.FileName)
+                If ProjectSet.ExportDirectory <> "" Then
+                    RememberExportDirectory(ProjectSet.ExportDirectory)
+                End If
                 CheckMapFile()
-                Dim fileinfo As New FileInfo(ProjectSet.InputMap)
-                LastData = fileinfo.LastWriteTime
+                ' Map-less TrigScript projects have an empty InputMap — skip watch stamp.
+                If ProjectSet.InputMap <> "" AndAlso CheckFileExist(ProjectSet.InputMap) = False Then
+                    Dim fileinfo As New FileInfo(ProjectSet.InputMap)
+                    LastData = fileinfo.LastWriteTime
+                End If
             End If
         End If
 
@@ -454,17 +389,29 @@ Public Class Main
             Else
                 SaveFileDialog1.FileName = Mid(ProjectSet.filename, 1, ProjectSet.filename.Length - 4)
             End If
+            Dim projectDir As String = ResolveProjectDialogDirectory()
+            If projectDir <> "" Then
+                SaveFileDialog1.InitialDirectory = projectDir
+            End If
 
 
             Dialog = SaveFileDialog1.ShowDialog()
             If Dialog = DialogResult.Cancel Then
             Else
                 ProjectSet.Save(SaveFileDialog1.FileName)
+                RememberProjectDirectory(SaveFileDialog1.FileName)
             End If
         Else
             ProjectSet.Save(ProjectSet.filename)
+            RememberProjectDirectory(ProjectSet.filename)
         End If
-        If ProgramSet.isAutoCompile = True Then
+        ' AutoCompile checkbox: when on, re-export to the last TrigScript folder (no euddraft).
+        If ProgramSet.isAutoCompile = True AndAlso ProjectSet.ExportDirectory <> "" AndAlso Directory.Exists(ProjectSet.ExportDirectory) Then
+            Try
+                TrigScriptExportModule.ExportToDirectory(ProjectSet.ExportDirectory)
+            Catch
+            End Try
+        ElseIf ProgramSet.isAutoCompile = True AndAlso ProjectSet.euddraftuse = True Then
             eudplib.Toflie()
         End If
         refreshSet()
@@ -477,9 +424,9 @@ Public Class Main
 
     Private Sub MPQFormOpen(sender As Object, e As EventArgs) Handles Button13.Click
         'MPQForm.Location = Me.Location
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         MPQForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
 
     End Sub
 
@@ -487,9 +434,9 @@ Public Class Main
         'GRPForm.Location = Me.Location
         'Size = New Size(221, 438)
         GRPForm.Size = New Size(806, 438)
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         GRPForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
     End Sub
 
@@ -497,43 +444,36 @@ Public Class Main
         'DatEditForm.Location = Me.Location
         DatEditForm.Timer1.Enabled = True
 
-        My.Forms.Main.Visible = False
+        Me.Visible = False
 
         DatEditForm.Show()
         My.Forms.DatEditForm.Activate()
     End Sub
 
     Private Sub FireGraftFormOpen(sender As Object, e As EventArgs) Handles Button3.Click
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         FireGraftForm.Show()
         FireGraftForm.RefreshForm()
         My.Forms.DatEditForm.Activate()
     End Sub
 
     Private Sub TriggerViewFormOpen(sender As Object, e As EventArgs) Handles Button4.Click
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         TriggerViewerForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
     End Sub
 
     Private Sub plugin_Click(sender As Object, e As EventArgs) Handles Button10.Click
-        ProjectSet.saveStatus = False
-
-        My.Forms.Main.Visible = False
-        PluginForm.ShowDialog()
-        My.Forms.Main.Visible = True
-        nameResetting()
-        LoadFileimportable()
-        ProjectSet.LoadCHKdata()
+        MsgBox("Plugin editor is disabled in this fork (euddraft-oriented; use TrigScript/epScript export instead).", MsgBoxStyle.Information, ProgramSet.ErrorFormMessage)
     End Sub
 
     Private Sub FileManager_Click(sender As Object, e As EventArgs) Handles Button15.Click
         ProjectSet.saveStatus = False
 
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         FileManagerForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
         LoadFileimportable()
         DatEditForm.Loadstattxt()
@@ -543,28 +483,23 @@ Public Class Main
     Private Sub binEditor_Click(sender As Object, e As EventArgs) Handles Button5.Click
         ProjectSet.saveStatus = False
 
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         binEditorForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
     End Sub
 
 
     Private Sub TileSet_Click(sender As Object, e As EventArgs) Handles Button6.Click
-        ProjectSet.saveStatus = False
-
-        My.Forms.Main.Visible = False
-        TileSetForm.ShowDialog()
-        My.Forms.Main.Visible = True
-        nameResetting()
+        MsgBox("TileSet editor is disabled in this fork (incompatible with TrigScript export).", MsgBoxStyle.Information, ProgramSet.ErrorFormMessage)
     End Sub
 
 
     Private Sub DebugFormOpen(sender As Object, e As EventArgs) Handles Button12.Click
 
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         DebugForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
     End Sub
 
 
@@ -583,65 +518,25 @@ Public Class Main
     End Sub
 
 
-    Private Sub EDD켜기DToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles EDDOpenDToolStripMenuItem.Click
-        eudplib.Toflie(True)
+    Private Sub ExportTrigScriptToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportTrigScriptToolStripMenuItem.Click
+        TrigScriptExportModule.TryExportWithFolderDialog(Me)
     End Sub
 
-    Private Sub EDD켜기_Click(sender As Object, e As EventArgs) Handles Button17.Click
-        eudplib.Toflie(True)
-    End Sub
     Private Sub 맵에삽입_Click(sender As Object, e As EventArgs) Handles Button14.Click
-        eudplib.Toflie()
-    End Sub
-
-    Private Sub 맵에삽입WToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles MpainjectWToolStripMenuItem.Click
-        eudplib.Toflie()
-    End Sub
-    Private Sub TriggerCopy_Click(sender As Object, e As EventArgs) Handles Button16.Click
-        My.Computer.Clipboard.SetText(TriggerViewerForm.RedrawText())
-        MsgBox("복사가 완료되었습니다.", MsgBoxStyle.OkOnly, "EUD Editor")
-    End Sub
-
-
-    Private Sub 트리거보기TToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles TriggerviewTToolStripMenuItem.Click
-        TriggerViewerForm.ShowDialog()
-        nameResetting()
-    End Sub
-
-    Private Sub 클립보드로EToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ToclipEToolStripMenuItem.Click
-        My.Computer.Clipboard.SetText(TriggerViewerForm.RedrawText())
-        MsgBox("복사가 완료되었습니다.", MsgBoxStyle.OkOnly, "EUD Editor")
-    End Sub
-
-    Private Sub Py파일보기VToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PyViewVToolStripMenuItem.Click
-        Previewer.ispyfile = True
-        Previewer.FCTB.Text = eudplib.GetPYtext
-        Previewer.ShowDialog()
-    End Sub
-
-    Private Sub Eds파일보기EToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles EdsViewEToolStripMenuItem.Click
-        Previewer.ispyfile = True
-        Previewer.FCTB.Text = eudplib.Getedstext
-
-        Previewer.ShowDialog()
+        TrigScriptExportModule.TryExportWithFolderDialog(Me)
     End Sub
 
     Private Sub 도구TToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ToolTToolStripMenuItem.DropDownOpened
-        If ProjectSet.euddraftuse = True And ProjectSet.isload = True Then
-            TriggerviewTToolStripMenuItem.Enabled = False
-            MpainjectWToolStripMenuItem.Enabled = True
-            EDDOpenDToolStripMenuItem.Enabled = True
-            ToclipEToolStripMenuItem.Enabled = False
-        Else
-            TriggerviewTToolStripMenuItem.Enabled = False 'True
-            MpainjectWToolStripMenuItem.Enabled = False
-            EDDOpenDToolStripMenuItem.Enabled = False
-            ToclipEToolStripMenuItem.Enabled = False 'True
-        End If
+        ExportTrigScriptToolStripMenuItem.Enabled = ProjectSet.isload
+        SyncExportFormatMenu()
     End Sub
 
     Private Sub 블로그설명서ToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles BlogHelpToolStripMenuItem.Click
-        HelpForm.Show()
+        Try
+            Process.Start("https://github.com/michaelcrusso/ee2-exporter")
+        Catch ex As Exception
+            MsgBox("Could not open browser: " & ex.Message, MsgBoxStyle.Exclamation, ProgramSet.ErrorFormMessage)
+        End Try
     End Sub
 
     Private Sub Button9_Click(sender As Object, e As EventArgs) Handles Button9.Click
@@ -651,74 +546,44 @@ Public Class Main
             MsgBox(Lan.GetText(Me.Name, "CHKMsg"), MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
         Else
             BulidForm.Close()
-            My.Forms.Main.Visible = False
+            Me.Visible = False
             TrigEditorForm.ShowDialog()
-            My.Forms.Main.Visible = True
+            Me.Visible = True
             nameResetting()
         End If
     End Sub
 
-    Private Sub ToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles ToolStripMenuItem1.Click
-        Try
-            Dim process As New Process
-            Dim startInfo As New ProcessStartInfo
-
-
-            startInfo.FileName = ProjectSet.InputMap
-            process.StartInfo = startInfo
-            process.Start()
-        Catch ex As Exception
-            MsgBox(Lan.GetText(Me.Name, "MapisNotExit"), MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
-        End Try
-
-    End Sub
-
-    Private Sub Button18_Click(sender As Object, e As EventArgs) Handles Button18.Click
-        Try
-            Dim process As New Process
-            Dim startInfo As New ProcessStartInfo
-
-
-            startInfo.FileName = ProjectSet.InputMap
-            process.StartInfo = startInfo
-            process.Start()
-        Catch ex As Exception
-            MsgBox(Lan.GetText(Me.Name, "MapisNotExit"), MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
-        End Try
-    End Sub
-
     Public LastData As Date
     Private Sub CheckMapWrite_Tick(sender As Object, e As EventArgs) Handles CheckMapWrite.Tick
-        If ProjectSet.isload = True Then
-            If CheckFileExist(ProjectSet.InputMap) = False Then
-                Dim fileinfo As New FileInfo(ProjectSet.InputMap)
-                If LastData < fileinfo.LastWriteTime Then
-                    LastData = fileinfo.LastWriteTime
-
-                    ProjectSet.LoadCHKdata()
-                    If ProgramSet.isAutoCompile = True Then
-                        eudplib.Toflie()
-                    End If
+        ' Map watch is only meaningful when an InputMap is set.
+        If ProjectSet.isload = True AndAlso ProjectSet.InputMap <> "" AndAlso CheckFileExist(ProjectSet.InputMap) = False Then
+            Dim fileinfo As New FileInfo(ProjectSet.InputMap)
+            If LastData < fileinfo.LastWriteTime Then
+                LastData = fileinfo.LastWriteTime
+                ProjectSet.LoadCHKdata()
+                If ProgramSet.isAutoCompile = True AndAlso ProjectSet.ExportDirectory <> "" AndAlso Directory.Exists(ProjectSet.ExportDirectory) Then
+                    Try
+                        TrigScriptExportModule.ExportToDirectory(ProjectSet.ExportDirectory)
+                    Catch
+                    End Try
                 End If
             End If
         End If
-
-
     End Sub
 
     Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click
         ProjectSet.saveStatus = False
 
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         SoundPlayerForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
     End Sub
 
     Private Sub Button11_Click(sender As Object, e As EventArgs) Handles Button11.Click
-        My.Forms.Main.Visible = False
+        Me.Visible = False
         FileSettingForm.ShowDialog()
-        My.Forms.Main.Visible = True
+        Me.Visible = True
         nameResetting()
     End Sub
 
@@ -726,17 +591,19 @@ Public Class Main
         ProgramSet.isAutoCompile = CheckBox1.Checked
     End Sub
 
-    Private Sub UpdateViewToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles UpdateViewToolStripMenuItem.Click
-        CheckUpdateForm.ShowDialog()
-    End Sub
-
     Private Sub RecentFileMenuItem_Click(sender As ToolStripMenuItem, e As EventArgs)
         Dim fileName = sender.Text
         If ProjectSet.Close() = True Then
             ProjectSet.Load(fileName)
+            RememberProjectDirectory(fileName)
+            If ProjectSet.ExportDirectory <> "" Then
+                RememberExportDirectory(ProjectSet.ExportDirectory)
+            End If
             CheckMapFile()
-            Dim fileinfo As New FileInfo(ProjectSet.InputMap)
-            LastData = fileinfo.LastWriteTime
+            If ProjectSet.InputMap <> "" AndAlso CheckFileExist(ProjectSet.InputMap) = False Then
+                Dim fileinfo As New FileInfo(ProjectSet.InputMap)
+                LastData = fileinfo.LastWriteTime
+            End If
         End If
         refreshSet()
     End Sub

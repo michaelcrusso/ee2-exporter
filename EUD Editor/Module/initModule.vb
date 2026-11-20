@@ -4,6 +4,135 @@ Imports Microsoft.Win32
 Module initModule
     Public DirectoryPath As String
 
+    ''' <summary>
+    ''' Walk up from the exe folder looking for a sibling/ancestor "mpqs" directory
+    ''' (repo layout: ee2-exporter/mpqs next to "EUD Editor").
+    ''' </summary>
+    Private Function FindRepoMpqDirectory() As String
+        Try
+            Dim dir As DirectoryInfo = New DirectoryInfo(My.Application.Info.DirectoryPath)
+            While dir IsNot Nothing
+                Dim candidate As String = Path.Combine(dir.FullName, "mpqs")
+                If Directory.Exists(candidate) Then
+                    Return candidate
+                End If
+                dir = dir.Parent
+            End While
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    ''' <summary>
+    ''' Case-insensitive MPQ lookup (Linux/Wine Z: paths are case-sensitive).
+    ''' </summary>
+    Private Function FindMpqFile(directoryPath As String, fileName As String) As String
+        If directoryPath = "" OrElse Directory.Exists(directoryPath) = False Then
+            Return ""
+        End If
+        Dim exact As String = Path.Combine(directoryPath, fileName)
+        If File.Exists(exact) Then
+            Return exact
+        End If
+        Try
+            For Each pathEntry As String In Directory.GetFiles(directoryPath)
+                If String.Equals(Path.GetFileName(pathEntry), fileName, StringComparison.OrdinalIgnoreCase) Then
+                    Return pathEntry
+                End If
+            Next
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    Public Sub PersistMpqSettings()
+        PersistProgramSettings()
+    End Sub
+
+    ''' <summary>
+    ''' Save StarCraft / euddraft / MPQ paths immediately so a crash or unclean exit
+    ''' does not force re-picking them on the next launch.
+    ''' </summary>
+    Public Sub PersistProgramSettings()
+        My.Settings.StarDirec = ProgramSet.StarDirec
+        My.Settings.euddraftDirec = ProgramSet.euddraftDirec
+        My.Settings.StarVersion = ProgramSet.StarVersion
+        My.Settings.mpqDirec = String.Join(",", ProgramSet.DatMPQDirec)
+        My.Settings.Save()
+    End Sub
+
+    ''' <summary>First existing directory among candidates, else process cwd if usable.</summary>
+    Public Function PreferExistingDirectory(ParamArray candidates As String()) As String
+        For Each candidate As String In candidates
+            If Not String.IsNullOrWhiteSpace(candidate) Then
+                Try
+                    If Directory.Exists(candidate) Then
+                        Return Path.GetFullPath(candidate)
+                    End If
+                Catch
+                End Try
+            End If
+        Next
+        Try
+            Dim cwd As String = Environment.CurrentDirectory
+            If Directory.Exists(cwd) Then
+                Return Path.GetFullPath(cwd)
+            End If
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    Public Sub RememberProjectDirectory(filePath As String)
+        If String.IsNullOrWhiteSpace(filePath) Then
+            Return
+        End If
+        Try
+            Dim directoryPath As String = Path.GetDirectoryName(filePath)
+            If Not String.IsNullOrWhiteSpace(directoryPath) AndAlso Directory.Exists(directoryPath) Then
+                My.Settings.LastProjectDirectory = directoryPath
+                My.Settings.Save()
+            End If
+        Catch
+        End Try
+    End Sub
+
+    Public Sub RememberExportDirectory(directoryPath As String)
+        If String.IsNullOrWhiteSpace(directoryPath) Then
+            Return
+        End If
+        Try
+            If Directory.Exists(directoryPath) Then
+                My.Settings.LastExportDirectory = directoryPath
+                ProjectSet.ExportDirectory = directoryPath
+                My.Settings.Save()
+            End If
+        Catch
+        End Try
+    End Sub
+
+    Public Function ResolveProjectDialogDirectory() As String
+        Dim fromProject As String = ""
+        If Not String.IsNullOrWhiteSpace(ProjectSet.filename) Then
+            Try
+                fromProject = Path.GetDirectoryName(ProjectSet.filename)
+            Catch
+            End Try
+        End If
+        Return PreferExistingDirectory(fromProject, My.Settings.LastProjectDirectory, My.Settings.LastExportDirectory)
+    End Function
+
+    Public Function ResolveExportDialogDirectory() As String
+        Dim fromProject As String = ""
+        If Not String.IsNullOrWhiteSpace(ProjectSet.filename) Then
+            Try
+                fromProject = Path.GetDirectoryName(ProjectSet.filename)
+            Catch
+            End Try
+        End If
+        Return PreferExistingDirectory(ProjectSet.ExportDirectory, My.Settings.LastExportDirectory, fromProject, My.Settings.LastProjectDirectory)
+    End Function
+
     Sub DeleteFilesFromFolder(Folder As String)
         If Directory.Exists(Folder) Then
             For Each _file As String In Directory.GetFiles(Folder)
@@ -36,7 +165,7 @@ Module initModule
 
         filename = My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language
         If System.IO.Directory.Exists(filename) = False Then
-            My.Settings.Language = "Korean"
+            My.Settings.Language = "English"
         End If
 
         Dim hyperLink As Boolean = False
@@ -158,7 +287,9 @@ Module initModule
         End If
 
 
-        If ProgramSet.StarDirec = "" Or ProgramSet.euddraftDirec = "" Then
+        ' StarCraft.exe is still required (MPQ / Casc game data roots).
+        ' euddraft.exe is optional in this fork (TrigScript export replaces that path).
+        If ProgramSet.StarDirec = "" Then
             SettingForm.StartPosition = FormStartPosition.CenterScreen
             SettingForm.TopMost = True
             SettingForm.PreSizeSet()
@@ -172,21 +303,41 @@ Module initModule
 
 
         Dim DatMPQ() As String = {"Patch_rt.mpq", "BrooDat.mpq", "BroodWar.mpq", "StarDat.mpq"}
+        Dim starCraftMpqDir As String = ""
+        If ProgramSet.StarDirec <> "" Then
+            starCraftMpqDir = Path.GetDirectoryName(ProgramSet.StarDirec)
+        End If
+        Dim repoMpqDir As String = FindRepoMpqDirectory()
 
+        ' Resolve missing MPQs: saved path → repo mpqs/ → next to StarCraft.exe
         For i = 0 To 3
             If CheckFileExist(ProgramSet.DatMPQDirec(i)) = True Then
-                ProgramSet.DatMPQDirec(i) = ProgramSet.StarDirec.Replace("StarCraft.exe", "") & DatMPQ(i)
+                Dim found As String = FindMpqFile(repoMpqDir, DatMPQ(i))
+                If found = "" Then
+                    found = FindMpqFile(starCraftMpqDir, DatMPQ(i))
+                End If
+                If found <> "" Then
+                    ProgramSet.DatMPQDirec(i) = found
+                End If
             End If
         Next
 
-
+        Dim needMpqPrompt As Boolean = False
         For i = 0 To DatMPQ.Count - 1
             If CheckFileExist(ProgramSet.DatMPQDirec(i)) = True Then
-                MsgBox(Lan.GetMsgText("enMPQ"), MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
-                SetMPQForm.ShowDialog()
+                needMpqPrompt = True
                 Exit For
             End If
         Next
+        If needMpqPrompt Then
+            MsgBox(Lan.GetMsgText("enMPQ"), MsgBoxStyle.Critical, ProgramSet.ErrorFormMessage)
+            If SetMPQForm.ShowDialog() = DialogResult.OK Then
+                PersistMpqSettings()
+            End If
+        Else
+            ' Keep Wine/user settings in sync when we auto-resolved from mpqs/
+            PersistMpqSettings()
+        End If
 
 
         If My.User.IsInRole("administrators") = False Then
@@ -236,41 +387,50 @@ Module initModule
 
         '
 
-        Dim classes As RegistryKey = My.Computer.Registry.CurrentUser.OpenSubKey("Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree)
+        ' File associations are nice-to-have on Windows; under Wine the Classes key
+        ' may be missing and OpenSubKey returns Nothing. Never block startup for this.
+        Try
+            Dim classes As RegistryKey = My.Computer.Registry.CurrentUser.OpenSubKey(
+                "Software\Classes", RegistryKeyPermissionCheck.ReadWriteSubTree)
+            If classes Is Nothing Then
+                classes = My.Computer.Registry.CurrentUser.CreateSubKey("Software\Classes")
+            End If
+            If classes IsNot Nothing Then
+                classes.CreateSubKey(".e2s").SetValue("",
+                  "e2s", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("e2s\shell\open\command").SetValue("",
+                Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("e2s\DefaultIcon").SetValue("",
+               My.Application.Info.DirectoryPath & "\Data\icons\e2s.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
 
 
+                classes.CreateSubKey(".ees").SetValue("",
+                  "ees", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("ees\shell\open\command").SetValue("",
+                Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("ees\DefaultIcon").SetValue("",
+                My.Application.Info.DirectoryPath & "\Data\icons\ees.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
 
 
-        classes.CreateSubKey(".e2s").SetValue("",
-          "e2s", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("e2s\shell\open\command").SetValue("",
-        Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("e2s\DefaultIcon").SetValue("",
-       My.Application.Info.DirectoryPath & "\Data\icons\e2s.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey(".mem").SetValue("",
+                  "mem", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("mem\shell\open\command").SetValue("",
+                Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("mem\DefaultIcon").SetValue("",
+               My.Application.Info.DirectoryPath & "\Data\icons\mem.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
 
 
-        classes.CreateSubKey(".ees").SetValue("",
-          "ees", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("ees\shell\open\command").SetValue("",
-        Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("ees\DefaultIcon").SetValue("",
-        My.Application.Info.DirectoryPath & "\Data\icons\ees.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey(".e2p").SetValue("",
+                  "e2p", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("e2p\shell\open\command").SetValue("",
+                Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
+                classes.CreateSubKey("e2p\DefaultIcon").SetValue("",
+               My.Application.Info.DirectoryPath & "\Data\icons\e2p.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
 
-
-        classes.CreateSubKey(".mem").SetValue("",
-          "mem", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("mem\shell\open\command").SetValue("",
-        Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("mem\DefaultIcon").SetValue("",
-       My.Application.Info.DirectoryPath & "\Data\icons\mem.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
-
-
-        classes.CreateSubKey(".e2p").SetValue("",
-          "e2p", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("e2p\shell\open\command").SetValue("",
-        Application.ExecutablePath & " ""%l"" ", Microsoft.Win32.RegistryValueKind.String)
-        classes.CreateSubKey("e2p\DefaultIcon").SetValue("",
-       My.Application.Info.DirectoryPath & "\Data\icons\e2p.ico" & ",0", Microsoft.Win32.RegistryValueKind.String)
+                classes.Close()
+            End If
+        Catch
+        End Try
 
         'TextEditor.ShowDialog()
         'Main.Close()

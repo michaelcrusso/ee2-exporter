@@ -638,16 +638,20 @@ Module ProgramData
 
         FileStream = New FileStream(My.Application.Info.DirectoryPath & "\Data\" & "FireGraftConFun.txt", FileMode.Open)
         Dim strReader As New StreamReader(FileStream)
-        Dim str() As String = strReader.ReadToEnd.Split(vbCrLf)
+        Dim str() As String = SplitLines(strReader.ReadToEnd)
 
         For i = 0 To str.Count - 1
+            If str(i).Trim() = "" Then
+                Continue For
+            End If
             Dim tbtntype As New btnType
+            Dim fields() As String = str(i).Split(vbTab)
 
-            tbtntype.Name = str(i).Split("	")(0).Trim
-            tbtntype.FucOffset = "&H" & str(i).Split("	")(1)
+            tbtntype.Name = fields(0).Trim
+            tbtntype.FucOffset = "&H" & fields(1).Trim
 
-            If str(i).Split("	").Count = 3 Then
-                tbtntype.Code = str(i).Split("	")(2)
+            If fields.Count = 3 Then
+                tbtntype.Code = fields(2)
             Else
                 tbtntype.Code = -1
             End If
@@ -665,16 +669,20 @@ Module ProgramData
 
         FileStream = New FileStream(My.Application.Info.DirectoryPath & "\Data\" & "FireGraftActFun.txt", FileMode.Open)
         strReader = New StreamReader(FileStream)
-        str = strReader.ReadToEnd.Split(vbCrLf)
+        str = SplitLines(strReader.ReadToEnd)
 
         For i = 0 To str.Count - 1
+            If str(i).Trim() = "" Then
+                Continue For
+            End If
             Dim tbtntype As New btnType
+            Dim fields() As String = str(i).Split(vbTab)
 
-            tbtntype.Name = str(i).Split("	")(0).Trim
-            tbtntype.FucOffset = "&H" & str(i).Split("	")(1)
+            tbtntype.Name = fields(0).Trim
+            tbtntype.FucOffset = "&H" & fields(1).Trim
 
-            If str(i).Split("	").Count = 3 Then
-                tbtntype.Code = str(i).Split("	")(2)
+            If fields.Count = 3 Then
+                tbtntype.Code = fields(2)
             Else
                 tbtntype.Code = -1
             End If
@@ -690,7 +698,13 @@ Module ProgramData
         Dim file As FileStream = New FileStream(My.Application.Info.DirectoryPath & "\Data\reqopcode.txt", FileMode.Open, FileAccess.Read)
         Dim stream As StreamReader = New StreamReader(file, System.Text.Encoding.Default)
 
-        reqOpcode = stream.ReadToEnd.Split(vbCrLf, Integer.MaxValue, StringSplitOptions.RemoveEmptyEntries)
+        Dim reqLines As New List(Of String)
+        For Each reqLine As String In SplitLines(stream.ReadToEnd)
+            If reqLine.Trim() <> "" Then
+                reqLines.Add(reqLine)
+            End If
+        Next
+        reqOpcode = reqLines.ToArray()
         reqOpcode(1) = " " & reqOpcode(1)
         'reqOpcode(0) = "  " & reqOpcode(0)
         'reqOpcode(31) = "  " & reqOpcode(31)
@@ -712,7 +726,8 @@ Module ProgramData
         For i = 0 To CODE(DTYPE.units).Count - 1
             RequireData(0).Add(New SReqDATA)
             ProjectRequireData(0).Add(New SReqDATA)
-            ProjectRequireDataUSE(0).Add(True)
+            ' 0 = unmodified; export only relocates require tables when any entry is marked used.
+            ProjectRequireDataUSE(0).Add(0)
 
             Dim cot As Integer = RequireData(0).Count - 1
             RequireData(0)(cot).pos = binReader.ReadUInt16()
@@ -720,7 +735,7 @@ Module ProgramData
         For i = 0 To CODE(DTYPE.upgrades).Count - 1
             RequireData(1).Add(New SReqDATA)
             ProjectRequireData(1).Add(New SReqDATA)
-            ProjectRequireDataUSE(1).Add(True)
+            ProjectRequireDataUSE(1).Add(0)
 
             Dim cot As Integer = RequireData(1).Count - 1
             RequireData(1)(cot).pos = binReader.ReadUInt16()
@@ -728,7 +743,7 @@ Module ProgramData
         For i = 0 To CODE(DTYPE.techdata).Count - 2
             RequireData(2).Add(New SReqDATA)
             ProjectRequireData(2).Add(New SReqDATA)
-            ProjectRequireDataUSE(2).Add(True)
+            ProjectRequireDataUSE(2).Add(0)
 
             Dim cot As Integer = RequireData(2).Count - 1
             RequireData(2)(cot).pos = binReader.ReadUInt16()
@@ -736,7 +751,7 @@ Module ProgramData
         For i = 0 To CODE(DTYPE.techdata).Count - 2
             RequireData(3).Add(New SReqDATA)
             ProjectRequireData(3).Add(New SReqDATA)
-            ProjectRequireDataUSE(3).Add(True)
+            ProjectRequireDataUSE(3).Add(0)
 
             Dim cot As Integer = RequireData(3).Count - 1
             RequireData(3)(cot).pos = binReader.ReadUInt16()
@@ -744,7 +759,7 @@ Module ProgramData
         For i = 0 To CODE(DTYPE.orders).Count - 2
             RequireData(4).Add(New SReqDATA)
             ProjectRequireData(4).Add(New SReqDATA)
-            ProjectRequireDataUSE(4).Add(True)
+            ProjectRequireDataUSE(4).Add(0)
 
             Dim cot As Integer = RequireData(4).Count - 1
             RequireData(4)(cot).pos = binReader.ReadUInt16()
@@ -1090,7 +1105,11 @@ Module ProgramData
         strreader.Close()
         FileStream.Close()
 
-        Dim line() As String = text.Split(vbCrLf)
+        Dim line() As String = SplitLines(text)
+        ' Drop a trailing empty line from a final newline so counts stay correct.
+        If line.Length > 0 AndAlso line(line.Length - 1).Trim() = "" Then
+            ReDim Preserve line(line.Length - 2)
+        End If
         Dim count As Integer = line.Count - 1
 
 
@@ -1110,10 +1129,18 @@ Module ProgramData
 
     Private Function ReadDEF(BaseDEFtext As String, Key As String)
         Try
+            ' Linux/git checkouts often use LF-only .def files; this parser historically
+            ' only matched CRLF. Normalize so keys like Varcount are found either way.
+            Dim normalized As String = BaseDEFtext.Replace(vbCrLf, vbLf).Replace(vbCr, vbLf).Replace(vbLf, vbCrLf)
+            ' Also allow a key on the first line (no leading newline).
+            If Not normalized.StartsWith(vbCrLf) Then
+                normalized = vbCrLf & normalized
+            End If
+
             Dim temptext2 As String
-            Dim start As Integer = InStr(BaseDEFtext, vbCrLf & Key)
+            Dim start As Integer = InStr(normalized, vbCrLf & Key)
             If start > 0 Then
-                Dim temptext As String = Mid(BaseDEFtext, start)
+                Dim temptext As String = Mid(normalized, start)
 
                 temptext = Mid(temptext, InStr(temptext, "="))
                 'Mid(base, InStr(base, Key), 4)
@@ -1433,10 +1460,10 @@ Module ProgramData
                 tempdata.keyDic.Add(ReadDEF(defFile, i & "Name"), i)
             End If
 
-            If ReadDEF(defFile, i & "VarArray") <> False Then
-                tempkinfo.realSize = ReadDEF(defFile, i & "VarArray") * ReadDEF(defFile, i & "Size")
+            If ReadDEF(defFile, i & "VarArray") <> "false" Then
+                tempkinfo.realSize = CUInt(ReadDEF(defFile, i & "VarArray")) * CUInt(ReadDEF(defFile, i & "Size"))
             Else
-                tempkinfo.realSize = ReadDEF(defFile, i & "Size")
+                tempkinfo.realSize = CUInt(ReadDEF(defFile, i & "Size"))
             End If
 
             tempkinfo.Size = ReadDEF(defFile, i & "Size")

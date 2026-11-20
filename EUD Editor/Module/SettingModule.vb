@@ -65,6 +65,15 @@ Namespace ProjectSet
 
         Public InputMap As String
         Public OutputMap As String
+        ''' <summary>Last TrigScript export folder for this project (stored in .e2s/.e2p).</summary>
+        Public ExportDirectory As String
+        Public Enum PatchExportFormat
+            TrigScript = 0
+            EpScript = 1
+            ClassicTrigger = 2
+        End Enum
+        ''' <summary>Which patch emitter to use (Tools menu exclusive checkables).</summary>
+        Public ExportFormat As PatchExportFormat = PatchExportFormat.TrigScript
         Public euddraftuse As Boolean
         Public UsedSetting(8) As Boolean
 
@@ -146,8 +155,6 @@ Namespace ProjectSet
 
 
         Public Sub LoadCHKdata()
-            LoadTILEDATA()
-
             CHKSTRING.Clear()
             CHKSWITCHNAME.Clear()
             CHKLOCATIONNAME.Clear()
@@ -164,6 +171,17 @@ Namespace ProjectSet
                     Next
                 Next
             Next
+
+            ' Map-less TrigScript projects: no scenario.chk / tile data to read.
+            If InputMap = "" OrElse CheckFileExist(InputMap) Then
+                PlayerRace = 255
+                ProjectTileSetData.Clear()
+                ProjectTIleMSet = New Byte() {}
+                ProjectMTXMDATA = New Byte() {}
+                Exit Sub
+            End If
+
+            LoadTILEDATA()
 
             Dim hmpq As UInteger
             Dim hfile As UInteger
@@ -187,7 +205,7 @@ Namespace ProjectSet
 
                 Dim mem As MemoryStream = New MemoryStream(buffer)
                 Dim binary As BinaryReader = New BinaryReader(mem)
-                Dim stream As StreamReader = New StreamReader(mem, Text.Encoding.ASCII)
+                Dim stream As StreamReader = New StreamReader(mem, System.Text.Encoding.ASCII)
 
                 mem.Position = SearchCHK("SIDE", buffer)
 
@@ -579,7 +597,7 @@ Namespace ProjectSet
                     mem.Close()
 
                 Dim strmem As MemoryStream = New MemoryStream(STRpara)
-                Dim strencoding As Text.Encoding = Text.Encoding.GetEncoding("ks_c_5601-1987")
+                Dim strencoding As System.Text.Encoding = System.Text.Encoding.GetEncoding("ks_c_5601-1987")
                 Dim strbinary As BinaryReader = New BinaryReader(strmem, strencoding)
 
                 If entrysize = 4 Then
@@ -687,7 +705,7 @@ Namespace ProjectSet
                 Next
 
                 If utf8count <> 0 Then
-                    strencoding = Text.Encoding.GetEncoding("utf-8")
+                    strencoding = System.Text.Encoding.GetEncoding("utf-8")
                 End If
                 Dim strstream As BinaryReader = New BinaryReader(strmem, strencoding)
 
@@ -740,7 +758,9 @@ Namespace ProjectSet
 
             InputMap = ""
             OutputMap = ""
-            euddraftuse = True
+            ExportDirectory = ""
+            ExportFormat = PatchExportFormat.TrigScript
+            euddraftuse = False
             scdbLoingStatus = False
             For i = 0 To 227
                 UNITSTR(i) = 0
@@ -750,6 +770,9 @@ Namespace ProjectSet
             For i = 0 To 8
                 UsedSetting(i) = True
             Next
+            ' TileSet / Plugin are incompatible with the TrigScript export workflow.
+            UsedSetting(Settingtype.TileSet) = False
+            UsedSetting(Settingtype.Plugin) = False
             TriggerPlayer = 7
             TriggerSetTouse = True
             EUDEditorDebug = False
@@ -863,9 +886,12 @@ Namespace ProjectSet
 
             ProjectTileSetData.Clear()
 
-            If TilebitDATA IsNot Nothing Then
+            If TilebitDATA IsNot Nothing AndAlso MapSize.Width > 0 AndAlso MapSize.Height > 0 Then
                 ReDim ProjectTIleMSet(TilebitDATA.Count)
                 ReDim ProjectMTXMDATA(MapSize.Width * MapSize.Height - 1)
+            Else
+                ProjectTIleMSet = New Byte() {}
+                ProjectMTXMDATA = New Byte() {}
             End If
             ProjectTileUseFile = False
             ProjectTileSetFileName = ""
@@ -976,8 +1002,21 @@ Namespace ProjectSet
 
 
 
-                        InputMap = FindSetting(Section_ProjectSET, "InputMap")
-                        OutputMap = FindSetting(Section_ProjectSET, "OutputMap")
+                        InputMap = FindSetting(Section_ProjectSET, "InputMap", True)
+                        OutputMap = FindSetting(Section_ProjectSET, "OutputMap", True)
+                        ExportDirectory = FindSetting(Section_ProjectSET, "trigScriptExportDir", True)
+                        If ExportDirectory = "0" Then
+                            ExportDirectory = ""
+                        End If
+                        Dim formatName As String = FindSetting(Section_ProjectSET, "trigScriptExportFormat", True)
+                        Select Case formatName
+                            Case "EpScript"
+                                ExportFormat = PatchExportFormat.EpScript
+                            Case "ClassicTrigger"
+                                ExportFormat = PatchExportFormat.ClassicTrigger
+                            Case Else
+                                ExportFormat = PatchExportFormat.TrigScript
+                        End Select
                         euddraftuse = FindSetting(Section_ProjectSET, "euddraftuse")
                         LoadFromCHK = FindSetting(Section_ProjectSET, "loadfromCHK")
                         For i = 0 To UsedSetting.Count - 1
@@ -1911,6 +1950,8 @@ Namespace ProjectSet
             _stringbdl.Append("Version : " & ProgramSet.Version & vbCrLf)
             _stringbdl.Append("InputMap : " & InputMap & vbCrLf)
             _stringbdl.Append("OutputMap : " & OutputMap & vbCrLf)
+            _stringbdl.Append("trigScriptExportDir : " & ExportDirectory & vbCrLf)
+            _stringbdl.Append("trigScriptExportFormat : " & ExportFormat.ToString() & vbCrLf)
             _stringbdl.Append("euddraftuse : " & euddraftuse & vbCrLf)
             _stringbdl.Append("loadfromCHK : " & LoadFromCHK & vbCrLf)
             For i = 0 To UsedSetting.Count - 1
@@ -2128,6 +2169,12 @@ Namespace ProjectSet
                 _stringbdl.Append("ProjectTileSetFileName : " & vbCrLf)
             Else
                 _stringbdl.Append("ProjectTileSetFileName : " & ProjectTileSetFileName & vbCrLf)
+            End If
+            If ProjectTIleMSet Is Nothing Then
+                ProjectTIleMSet = New Byte() {}
+            End If
+            If ProjectMTXMDATA Is Nothing Then
+                ProjectMTXMDATA = New Byte() {}
             End If
             _stringbdl.Append("ProjectTIleMSetCount : " & ProjectTIleMSet.Count & vbCrLf)
 

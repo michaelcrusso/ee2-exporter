@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <StartupObject>EUD_Editor.My.MyApplication</StartupObject>
     <RootNamespace>EUD_Editor</RootNamespace>
-    <AssemblyName>EUD Editor SE</AssemblyName>
+    <AssemblyName>EE2 Exporter</AssemblyName>
     <FileAlignment>512</FileAlignment>
     <MyType>WindowsForms</MyType>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
@@ -37,7 +37,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\Debug\</OutputPath>
-    <DocumentationFile>EUD Editor SE.xml</DocumentationFile>
+    <DocumentationFile>EE2 Exporter.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
@@ -48,12 +48,14 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DocumentationFile>EUD Editor SE.xml</DocumentationFile>
+    <DocumentationFile>EE2 Exporter.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <OptionExplicit>On</OptionExplicit>
+    <!-- Source files are UTF-8 (BOM); required for Wine/vbc to parse Korean identifiers. -->
+    <CodePage>65001</CodePage>
   </PropertyGroup>
   <PropertyGroup>
     <OptionCompare>Binary</OptionCompare>
@@ -69,7 +71,7 @@
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\x86\Debug\</OutputPath>
-    <DocumentationFile>EUD Editor SE.xml</DocumentationFile>
+    <DocumentationFile>EE2 Exporter.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
@@ -79,7 +81,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <DefineTrace>true</DefineTrace>
     <OutputPath>bin\x86\Release\</OutputPath>
-    <DocumentationFile>EUD Editor SE.xml</DocumentationFile>
+    <DocumentationFile>EE2 Exporter.xml</DocumentationFile>
     <Optimize>true</Optimize>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <DebugType>pdbonly</DebugType>
@@ -610,6 +612,7 @@
     <Compile Include="Module\UpdateModule.vb" />
     <Compile Include="Module\ValueDefsModule.vb" />
     <Compile Include="Module\tempmoudle.vb" />
+    <Compile Include="Module\TrigScriptExportModule.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -968,7 +971,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <PropertyGroup>
-    <PreBuildEvent>taskkill /IM "EUD Editor SE.exe" /F /FI "STATUS eq RUNNING"</PreBuildEvent>
+    <!-- Wine's taskkill lacks /FI; ignore failure if the editor is not running. -->
+    <PreBuildEvent>taskkill /IM "EE2 Exporter.exe" /F &amp; exit /B 0</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
