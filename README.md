@@ -10,8 +10,6 @@
 
 **Repo:** https://github.com/michaelcrusso/ee2-exporter
 
-Agent notes: [`GOALS.md`](GOALS.md).
-
 ---
 
 ## Why this exists (Linux-first)

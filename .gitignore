@@ -297,6 +297,9 @@ wine-build.log
 # Local StarCraft MPQ copies (large; place Patch_rt / BrooDat / BroodWar / StarDat here)
 mpqs/
 
+# Agent / machine-local handoff notes (not for the public repo)
+GOALS.md
+
 # NuGet packages restored by ./build-eud-editor.sh
 packages/
 
