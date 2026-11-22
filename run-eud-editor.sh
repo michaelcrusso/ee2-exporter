@@ -35,25 +35,33 @@ if [[ -f "${PREFIX}/system.reg" ]] && grep -q '^#arch=win32' "${PREFIX}/system.r
   exit 1
 fi
 
-CANDIDATES=(
-  "${ROOT}/EUD Editor/bin/x86/Release/EE2 Exporter.exe"
-  "${ROOT}/EUD Editor/bin/x86/Debug/EE2 Exporter.exe"
-  "${ROOT}/EUD Editor/bin/Release/EE2 Exporter.exe"
-  "${ROOT}/EUD Editor/bin/Debug/EE2 Exporter.exe"
-  "${ROOT}/dist/EE2 Exporter.exe"
+# Prefer the renamed assembly; fall back to pre-rename builds still on disk.
+BIN_DIRS=(
+  "${ROOT}/EUD Editor/bin/x86/Release"
+  "${ROOT}/EUD Editor/bin/x86/Debug"
+  "${ROOT}/EUD Editor/bin/Release"
+  "${ROOT}/EUD Editor/bin/Debug"
+  "${ROOT}/dist"
+)
+EXE_NAMES=(
+  "EE2 Exporter.exe"
+  "EUD Editor SE.exe"
 )
 
 EXE=""
-for candidate in "${CANDIDATES[@]}"; do
-  if [[ -f "${candidate}" ]]; then
-    EXE="${candidate}"
-    break
-  fi
+for bin_dir in "${BIN_DIRS[@]}"; do
+  for exe_name in "${EXE_NAMES[@]}"; do
+    candidate="${bin_dir}/${exe_name}"
+    if [[ -f "${candidate}" ]]; then
+      EXE="${candidate}"
+      break 2
+    fi
+  done
 done
 
 if [[ -z "${EXE}" ]]; then
-  echo "error: no EE2 Exporter.exe found under EUD Editor/bin/ (or dist/)." >&2
-  echo "Build the WinForms project (Visual Studio / MSBuild, x86), then re-run." >&2
+  echo "error: no EE2 Exporter.exe (or legacy EUD Editor SE.exe) found under EUD Editor/bin/ (or dist/)." >&2
+  echo "Build with: ./build-eud-editor.sh" >&2
   exit 1
 fi
 
