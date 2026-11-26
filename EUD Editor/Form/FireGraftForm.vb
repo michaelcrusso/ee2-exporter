@@ -708,15 +708,20 @@ Public Class FireGraftForm
                 CheckBox1.Checked = Not ProjectBtnUSE(_OBJECTNUM)
                 Panel2.Enabled = ProjectBtnUSE(_OBJECTNUM)
 
+                ' ReadLine handles LF and CRLF; Split(vbCrLf) breaks on LF-only
+                ' language files checked out under Linux/Wine and collapses Icon to one entry.
                 Dim file As FileStream = New FileStream(My.Application.Info.DirectoryPath & "\Data\Language\" & My.Settings.Language & "\Icon.txt", FileMode.Open, FileAccess.Read)
                 Dim stream As StreamReader = New StreamReader(file, System.Text.Encoding.Default)
 
-                Dim Icon() As String
-
-                Icon = stream.ReadToEnd.Split(vbCrLf)
+                Dim iconNames As New List(Of String)
+                While stream.EndOfStream = False
+                    iconNames.Add(stream.ReadLine())
+                End While
 
                 stream.Close()
                 file.Close()
+
+                Dim Icon() As String = iconNames.ToArray()
 
 
                 Dim lastsel As Integer = ListBox2.SelectedIndex
