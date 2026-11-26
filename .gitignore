@@ -300,6 +300,6 @@ mpqs/
 # Agent / machine-local handoff notes (not for the public repo)
 GOALS.md
 
-# NuGet packages restored by ./build-eud-editor.sh
+# NuGet packages restored by ./build-ee2ex.sh
 packages/
 

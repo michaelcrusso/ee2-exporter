@@ -67,7 +67,7 @@ printf '    %s\n' "${VERBS[@]}"
 echo "    (Also logging to ${LOG})"
 
 # During winetricks .NET installs, disable Mono's mscoree so the real Framework can install.
-# run-eud-editor.sh does not set this, so the app can use native .NET.
+# run-ee2ex.sh does not set this, so the app can use native .NET.
 export WINEDLLOVERRIDES="mscoree,mshtml="
 
 set +e
@@ -101,5 +101,5 @@ date -u +"%Y-%m-%dT%H:%M:%SZ" >"${MARKER}"
 } >>"${MARKER}"
 
 echo "==> Wine prefix ready."
-echo "    Run the editor with: ./run-eud-editor.sh"
+echo "    Run EE2 Exporter with: ./run-ee2ex.sh"
 echo "    (Build EE2 Exporter.exe first on Windows/VS, or place a build under EUD Editor/bin/.)"

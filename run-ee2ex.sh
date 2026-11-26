@@ -61,7 +61,7 @@ done
 
 if [[ -z "${EXE}" ]]; then
   echo "error: no EE2 Exporter.exe (or legacy EUD Editor SE.exe) found under EUD Editor/bin/ (or dist/)." >&2
-  echo "Build with: ./build-eud-editor.sh" >&2
+  echo "Build with: ./build-ee2ex.sh" >&2
   exit 1
 fi
 

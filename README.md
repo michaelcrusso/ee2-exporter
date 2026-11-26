@@ -6,7 +6,7 @@
 
 | Format | File | Use |
 | --- | --- | --- |
-| **TrigScript** (default) | `eud-patches.trig` | `program(() => { setMemory(...); });` for scmJS / TrigScript maps |
+| **TrigScript** (default) | `eud-patches.ts` | `export const applyEudPatches = game(() => { setMemory(..., "add"/"set"/"subtract", ...); })` for scmJS maps |
 | **epScript** | `eud-patches.eps` | `onPluginStart` + `SetMemory(...)` for epScript / euddraft workflows |
 | Classic TrigEdit | — | Not implemented yet |
 
@@ -68,10 +68,10 @@ Normal **.NET Framework 4.8** WinForms **x86** app:
 Repo-local prefix: `wine/` (gitignored). Wine 10+ wow64 → prefix is **`win64`**.
 
 ```bash
-chmod +x setup-wine.sh build-eud-editor.sh run-eud-editor.sh
+chmod +x setup-wine.sh build-ee2ex.sh run-ee2ex.sh
 ./setup-wine.sh          # once; long first run → wine-setup.log
-./build-eud-editor.sh    # → wine-build.log
-./run-eud-editor.sh
+./build-ee2ex.sh         # → wine-build.log
+./run-ee2ex.sh
 ```
 
 Prerequisites: `wine` (32-bit WoW64), `winetricks`, `curl`/`wget`, `unzip`.
@@ -85,7 +85,7 @@ Official .NET Framework SDK Docker images are **Windows containers** and do not 
 1. **File → New** (or Open a `.e2s` / `.e2p`). No map load/save.
 2. Edit **DatEdit** / **Firegraft** as needed.
 3. **Tool →** choose **TrigScript Export** or **epScript Export**, then **Export Now…** (or the toolbar **Export** button). **AutoExport** re-exports to the last folder on save.
-4. Import the generated `.trig` / `.eps` into your TrigScript or epScript project.
+4. For TrigScript, pick the map’s `trigscript/` folder — EE2 overwrites only `eud-patches.ts` (no JSON/bin left in the map tree). Wire `import { applyEudPatches } from "./eud-patches"` in `main.ts` once. For epScript, drop the generated `.eps` into your euddraft plugin chain.
 
 Last export/project folders are remembered in settings and in the project file (`trigScriptExportDir`, `trigScriptExportFormat`).
 

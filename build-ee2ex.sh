@@ -138,4 +138,4 @@ if [[ ! -f "${OUT}" ]]; then
 fi
 
 echo "==> Built: ${OUT}"
-echo "    Run with: ./run-eud-editor.sh"
+echo "    Run with: ./run-ee2ex.sh"
