@@ -307,21 +307,22 @@ Public Class Main
     End Sub
     Private Sub 다른이름으로저장()
         Dim Dialog As DialogResult
-
-        If ProjectSet.filename = "" Then
-            SaveFileDialog1.FileName = Lan.GetMsgText("Defacultname")
-        Else
-            Dim name As String = ProjectSet.filename.Split("\").Last
-
-            SaveFileDialog1.FileName = Mid(name, 1, name.Length - 4)
-        End If
         Dim projectDir As String = ResolveProjectDialogDirectory()
+        Dim baseName As String
+        If ProjectSet.filename = "" Then
+            baseName = Lan.GetMsgText("Defacultname")
+        Else
+            baseName = Path.GetFileNameWithoutExtension(ProjectSet.filename)
+        End If
         If projectDir <> "" Then
             SaveFileDialog1.InitialDirectory = projectDir
+            ' Full path helps Wine return a rooted FileName after OK.
+            SaveFileDialog1.FileName = Path.Combine(projectDir, baseName)
+        Else
+            SaveFileDialog1.FileName = baseName
         End If
 
-
-        Dialog = SaveFileDialog1.ShowDialog()
+        Dialog = ShowFileDialog(SaveFileDialog1)
 
         If Dialog = DialogResult.Cancel Then
         Else
@@ -343,7 +344,7 @@ Public Class Main
             OpenFileDialog1.InitialDirectory = projectDir
         End If
 
-        Dialog = OpenFileDialog1.ShowDialog()
+        Dialog = ShowFileDialog(OpenFileDialog1)
         If Dialog = DialogResult.Cancel Then
         Else
             If ProjectSet.Close() = True Then
@@ -382,20 +383,21 @@ Public Class Main
 
         If ProjectSet.filename = "" Or extension = "ees" Or extension = "mem" Then 'Or ise2s Then
             Dim Dialog As DialogResult
-
-
-            If ProjectSet.filename = "" Then
-                SaveFileDialog1.FileName = Lan.GetMsgText("Defacultname")
-            Else
-                SaveFileDialog1.FileName = Mid(ProjectSet.filename, 1, ProjectSet.filename.Length - 4)
-            End If
             Dim projectDir As String = ResolveProjectDialogDirectory()
+            Dim baseName As String
+            If ProjectSet.filename = "" Then
+                baseName = Lan.GetMsgText("Defacultname")
+            Else
+                baseName = Path.GetFileNameWithoutExtension(ProjectSet.filename)
+            End If
             If projectDir <> "" Then
                 SaveFileDialog1.InitialDirectory = projectDir
+                SaveFileDialog1.FileName = Path.Combine(projectDir, baseName)
+            Else
+                SaveFileDialog1.FileName = baseName
             End If
 
-
-            Dialog = SaveFileDialog1.ShowDialog()
+            Dialog = ShowFileDialog(SaveFileDialog1)
             If Dialog = DialogResult.Cancel Then
             Else
                 ProjectSet.Save(SaveFileDialog1.FileName)

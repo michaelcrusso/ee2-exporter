@@ -61,11 +61,169 @@ Module initModule
         My.Settings.Save()
     End Sub
 
-    ''' <summary>First existing directory among candidates, else process cwd if usable.</summary>
+    ''' <summary>True when running under Wine (WINEPREFIX / WINEHOMEDIR in the env).</summary>
+    Public Function IsWineRuntime() As Boolean
+        Return Not String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WINEPREFIX")) OrElse
+            Not String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WINEHOMEDIR"))
+    End Function
+
+    ''' <summary>Strip NT object prefix (\??\) Wine puts on paths like WINEHOMEDIR.</summary>
+    Private Function NormalizeWinePath(pathText As String) As String
+        If String.IsNullOrWhiteSpace(pathText) Then
+            Return pathText
+        End If
+        Dim trimmed As String = pathText.Trim()
+        If trimmed.StartsWith("\??\") Then
+            Return trimmed.Substring(4)
+        End If
+        Return trimmed
+    End Function
+
+    ''' <summary>
+    ''' Paths inside the Wine prefix user profile (C:\users\…) — not the host OS home.
+    ''' </summary>
+    Public Function IsWinePrefixUserPath(pathText As String) As Boolean
+        If Not IsWineRuntime() OrElse String.IsNullOrWhiteSpace(pathText) Then
+            Return False
+        End If
+        Try
+            Dim profile As String = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            If String.IsNullOrWhiteSpace(profile) Then
+                Return False
+            End If
+            Dim fullPath As String = Path.GetFullPath(pathText)
+            Dim profileFull As String = Path.GetFullPath(profile)
+            Return fullPath.StartsWith(profileFull, StringComparison.OrdinalIgnoreCase)
+        Catch
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Host OS home for dialogs. Under Wine, prefer WINEHOMEDIR (Z:\home\user) — $HOME
+    ''' is often missing from the Windows env, and UserProfile is the fake C:\users\… tree.
+    ''' </summary>
+    Public Function UserHomeDirectory() As String
+        Dim candidates As New List(Of String)
+
+        Dim wineHome As String = NormalizeWinePath(Environment.GetEnvironmentVariable("WINEHOMEDIR"))
+        If Not String.IsNullOrWhiteSpace(wineHome) Then
+            candidates.Add(wineHome)
+        End If
+
+        Dim wineUser As String = Environment.GetEnvironmentVariable("WINEUSERNAME")
+        If String.IsNullOrWhiteSpace(wineUser) Then
+            wineUser = Environment.UserName
+        End If
+        If IsWineRuntime() AndAlso Not String.IsNullOrWhiteSpace(wineUser) Then
+            candidates.Add("Z:\home\" & wineUser)
+        End If
+
+        Dim homeEnv As String = Environment.GetEnvironmentVariable("HOME")
+        If Not String.IsNullOrWhiteSpace(homeEnv) Then
+            candidates.Add(homeEnv)
+            If homeEnv.StartsWith("/") Then
+                candidates.Add("Z:" & homeEnv.Replace("/"c, "\"c))
+            End If
+        End If
+
+        ' Native Windows (or Wine last resort only if host home is missing).
+        If Not IsWineRuntime() Then
+            Try
+                candidates.Add(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+            Catch
+            End Try
+            Try
+                candidates.Add(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments))
+            Catch
+            End Try
+        End If
+
+        For Each candidate As String In candidates
+            Try
+                If Not String.IsNullOrWhiteSpace(candidate) AndAlso Directory.Exists(candidate) Then
+                    Return Path.GetFullPath(candidate)
+                End If
+            Catch
+            End Try
+        Next
+        Return ""
+    End Function
+
+    Public Function PathLooksRooted(pathText As String) As Boolean
+        If String.IsNullOrWhiteSpace(pathText) Then
+            Return False
+        End If
+        Try
+            If Path.IsPathRooted(pathText) Then
+                Return True
+            End If
+        Catch
+        End Try
+        ' Unix absolute paths are valid under Wine even when IsPathRooted is picky.
+        Return pathText.StartsWith("/")
+    End Function
+
+    ''' <summary>
+    ''' Wine's file dialog sometimes returns only a bare filename while changing the
+    ''' process cwd to the folder the user picked. Rejoin those before restoring cwd.
+    ''' </summary>
+    Public Function CompleteDialogFilePath(filePath As String, directoryAfterDialog As String) As String
+        If String.IsNullOrWhiteSpace(filePath) Then
+            Return filePath
+        End If
+        Dim pathText As String = filePath.Trim()
+        If Not PathLooksRooted(pathText) Then
+            Dim folder As String = ""
+            If Not String.IsNullOrWhiteSpace(directoryAfterDialog) AndAlso Directory.Exists(directoryAfterDialog) Then
+                folder = directoryAfterDialog
+            Else
+                folder = UserHomeDirectory()
+            End If
+            If Not String.IsNullOrWhiteSpace(folder) Then
+                pathText = Path.Combine(folder, pathText)
+            End If
+        End If
+        Try
+            Return Path.GetFullPath(pathText)
+        Catch
+            Return pathText
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' Show a file dialog and rewrite FileName to a rooted path. Captures Wine's
+    ''' post-dialog cwd (selected folder) when the dialog only returns a basename.
+    ''' </summary>
+    Public Function ShowFileDialog(dialog As FileDialog) As DialogResult
+        Dim previousCwd As String = Environment.CurrentDirectory
+        ' Must allow the dialog to change cwd so we can learn the selected folder under Wine.
+        dialog.RestoreDirectory = False
+        Dim result As DialogResult = dialog.ShowDialog()
+        Dim cwdAfterDialog As String = Environment.CurrentDirectory
+        Try
+            If Not String.Equals(previousCwd, cwdAfterDialog, StringComparison.OrdinalIgnoreCase) Then
+                Environment.CurrentDirectory = previousCwd
+            End If
+        Catch
+        End Try
+        If result = DialogResult.OK Then
+            dialog.FileName = CompleteDialogFilePath(dialog.FileName, cwdAfterDialog)
+        End If
+        Return result
+    End Function
+
+    ''' <summary>
+    ''' First existing directory among candidates, else the host user home folder.
+    ''' Under Wine, skips C:\users\… prefix paths so dialogs do not stick in the fake home.
+    ''' </summary>
     Public Function PreferExistingDirectory(ParamArray candidates As String()) As String
         For Each candidate As String In candidates
             If Not String.IsNullOrWhiteSpace(candidate) Then
                 Try
+                    If IsWinePrefixUserPath(candidate) Then
+                        Continue For
+                    End If
                     If Directory.Exists(candidate) Then
                         Return Path.GetFullPath(candidate)
                     End If
@@ -73,14 +231,7 @@ Module initModule
                 End Try
             End If
         Next
-        Try
-            Dim cwd As String = Environment.CurrentDirectory
-            If Directory.Exists(cwd) Then
-                Return Path.GetFullPath(cwd)
-            End If
-        Catch
-        End Try
-        Return ""
+        Return UserHomeDirectory()
     End Function
 
     Public Sub RememberProjectDirectory(filePath As String)

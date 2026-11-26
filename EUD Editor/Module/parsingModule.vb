@@ -124,7 +124,11 @@ Module parsingModule
 
 
     Public Function GetSafeName(str As String) As String
-        Return str.Split("\").Last
+        ' Path.GetFileName handles both \ and / (Wine may return either).
+        If String.IsNullOrWhiteSpace(str) Then
+            Return ""
+        End If
+        Return Path.GetFileName(str)
     End Function
 
 

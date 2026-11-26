@@ -1921,8 +1921,11 @@ Namespace ProjectSet
 
             Dim count As Integer = 0
 
+            Dim safeName As String = GetSafeName(MapName)
+            Dim packageDirectory As String = ""
             If issavefilezip And isnewfile Then
-                ProjectSet.filename = MapName.Replace(GetSafeName(MapName), "") & GetSafeName(MapName).Split(".").First & "\" & GetSafeName(MapName)
+                packageDirectory = Path.Combine(Path.GetDirectoryName(MapName), Path.GetFileNameWithoutExtension(safeName))
+                ProjectSet.filename = Path.Combine(packageDirectory, safeName)
             Else
                 ProjectSet.filename = MapName
             End If
@@ -1933,8 +1936,8 @@ Namespace ProjectSet
 
             Dim savefilename As String
             If issavefilezip = True And isnewfile = True Then
-                Directory.CreateDirectory(MapName.Replace(".e2p", ""))
-                savefilename = MapName.Replace(".e2p", "") & "\" & GetSafeName(MapName)
+                Directory.CreateDirectory(packageDirectory)
+                savefilename = Path.Combine(packageDirectory, safeName)
             Else
                 savefilename = MapName
             End If
